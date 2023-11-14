@@ -6,10 +6,10 @@ aiohttp<4.0.0,>=3.3.0
 aiohttp_socks>=0.3
 certifi
 bitstring
-attrs>=19.2.0
+attrs>=20.1.0
 x11_hash==1.4
-Pygments>=2.1
-dnspython<2.1,>=2.0
+jsonpatch
+dnspython>=2.0
 
 [crypto]
 cryptography>=2.6
@@ -19,7 +19,7 @@ cryptography>=2.6
 
 [full]
 hidapi
-trezor[hidapi]>=0.12.0
+trezor[hidapi]<0.14,>=0.13.0
 safet>=0.1.5
 keepkey>=6.3.1
 btchip-python>=0.1.32
@@ -31,7 +31,7 @@ pyqt5
 
 [hardware]
 hidapi
-trezor[hidapi]>=0.12.0
+trezor[hidapi]<0.14,>=0.13.0
 safet>=0.1.5
 keepkey>=6.3.1
 btchip-python>=0.1.32

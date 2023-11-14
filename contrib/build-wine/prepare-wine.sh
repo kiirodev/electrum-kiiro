@@ -25,7 +25,7 @@ info "Installing Python."
 # note: you might need "sudo apt-get install dirmngr" for the following
 # keys from https://www.python.org/downloads/#pubkeys
 KEYRING_PYTHON_DEV="keyring-electrum-build-python-dev.gpg"
-gpg --no-default-keyring --keyring $KEYRING_PYTHON_DEV --import "$here"/gpg_keys/7ED10B6531D7C8E1BC296021FC624643487034E5.asc
+gpg --no-default-keyring --keyring $KEYRING_PYTHON_DEV --import "$here"/gpg_keys/4AA9049527D1967FD4DE9EC0F32965D65E389578.asc
 if [ "$WIN_ARCH" = "win32" ] ; then
     PYARCH="win32"
 elif [ "$WIN_ARCH" = "win64" ] ; then

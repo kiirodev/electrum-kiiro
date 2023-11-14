@@ -8,7 +8,7 @@ cmdline_name = os.environ.get("ELECTRUM_CMDLINE_NAME")
 if not cmdline_name:
     raise Exception('no name')
 
-home = 'C:\\electrum\\'
+home = 'C:\\electrum-kiiro\\'
 
 # see https://github.com/pyinstaller/pyinstaller/issues/2005
 hiddenimports = []
@@ -21,8 +21,6 @@ hiddenimports += collect_submodules('keepkeylib')
 hiddenimports += collect_submodules('websocket')
 hiddenimports += collect_submodules('ckcc')
 hiddenimports += collect_submodules('bitbox02')
-hiddenimports += ['electrum.plugins.jade.jade']
-hiddenimports += ['electrum.plugins.jade.jadepy.jade']
 hiddenimports += ['PyQt5.QtPrintSupport']  # needed by Revealer
 
 
@@ -62,14 +60,11 @@ a = Analysis([home+'run_electrum',
               home+'electrum/bitcoin.py',
               home+'electrum/dnssec.py',
               home+'electrum/commands.py',
-              home+'electrum/plugins/cosigner_pool/qt.py',
               home+'electrum/plugins/trezor/qt.py',
               home+'electrum/plugins/safe_t/client.py',
               home+'electrum/plugins/safe_t/qt.py',
               home+'electrum/plugins/keepkey/qt.py',
               home+'electrum/plugins/ledger/qt.py',
-              home+'electrum/plugins/coldcard/qt.py',
-              home+'electrum/plugins/jade/qt.py',
               #home+'packages/requests/utils.py'
               ],
              binaries=binaries,
@@ -177,7 +172,7 @@ coll = COLLECT(
     a.zipfiles,
     a.datas,
     strip=None,
-    upx=True,S
+    upx=True,
     debug=False,
     icon=home+'electrum/gui/icons/electrum-kiiro.ico',
     console=False,
