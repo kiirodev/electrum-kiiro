@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QTabBar, QTextEdit, QStylePainter,
                              QCheckBox)
 
 from electrum import constants
-from electrum.dash_tx import SPEC_TX_NAMES
+from electrum.kiiro_tx import SPEC_TX_NAMES
 from electrum.i18n import _
 from electrum.network import deserialize_proxy
 from electrum.version import ELECTRUM_VERSION

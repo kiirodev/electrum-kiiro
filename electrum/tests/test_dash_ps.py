@@ -9,12 +9,12 @@ import time
 from collections import defaultdict, Counter
 from pprint import pprint
 
-from electrum import dash_ps, ecc
+from electrum import kiiro_ps, ecc
 from electrum.address_synchronizer import (TX_HEIGHT_LOCAL,
                                                 TX_HEIGHT_UNCONF_PARENT,
                                                 TX_HEIGHT_UNCONFIRMED)
 from electrum.bitcoin import COIN
-from electrum.dash_ps_util import (COLLATERAL_VAL, CREATE_COLLATERAL_VAL,
+from electrum.kiiro_ps_util import (COLLATERAL_VAL, CREATE_COLLATERAL_VAL,
                                         CREATE_COLLATERAL_VALS, PS_DENOMS_VALS,
                                         MIN_DENOM_VAL, PSMinRoundsCheckFailed,
                                         PSPossibleDoubleSpendError,
@@ -24,10 +24,10 @@ from electrum.dash_ps_util import (COLLATERAL_VAL, CREATE_COLLATERAL_VAL,
                                         PSCoinRounds, ps_coin_rounds_str,
                                         calc_tx_size, calc_tx_fee, to_duffs,
                                         MixingStats)
-from electrum.dash_ps_wallet import (KPStates, KP_ALL_TYPES, KP_SPENDABLE,
+from electrum.kiiro_ps_wallet import (KPStates, KP_ALL_TYPES, KP_SPENDABLE,
                                           KP_PS_COINS, KP_PS_CHANGE,
                                           PSKsInternalAddressCorruption)
-from electrum.dash_tx import PSTxTypes, SPEC_TX_NAMES
+from electrum.kiiro_tx import PSTxTypes, SPEC_TX_NAMES
 from electrum import keystore
 from electrum.simple_config import SimpleConfig
 from electrum.storage import WalletStorage
@@ -2066,12 +2066,12 @@ class PSWalletTestCase(TestCaseForTestnet):
     def test_calc_need_denoms_amounts_on_keep_amount(self):
         w = self.wallet
         psman = w.psman
-        two_dash_amnts_val = 200142001
+        two_kiiro_amnts_val = 200142001
 
         res = psman.calc_need_denoms_amounts()
-        assert sum([sum(amnts)for amnts in res]) == two_dash_amnts_val
+        assert sum([sum(amnts)for amnts in res]) == two_kiiro_amnts_val
         res = psman.calc_need_denoms_amounts(on_keep_amount=True)
-        assert sum([sum(amnts)for amnts in res]) == two_dash_amnts_val
+        assert sum([sum(amnts)for amnts in res]) == two_kiiro_amnts_val
 
         # test with spendable amount < keep_amount
         coins0 = w.get_utxos(None, excluded_addresses=w._frozen_addresses,
@@ -2085,12 +2085,12 @@ class PSWalletTestCase(TestCaseForTestnet):
         coins = w.get_utxos(None, excluded_addresses=w._frozen_addresses,
                             mature_only=True, include_ps=True)
         coins = [c for c in coins if not w.is_frozen_coin(c)]
-        assert sum([c.value_sats() for c in coins]) == 50000000  # 0.5 Dash
+        assert sum([c.value_sats() for c in coins]) == 50000000  # 0.5 Kiiro
 
         res = psman.calc_need_denoms_amounts()
         assert sum([sum(amnts)for amnts in res]) == 49740497
         res = psman.calc_need_denoms_amounts(on_keep_amount=True)
-        assert sum([sum(amnts)for amnts in res]) == two_dash_amnts_val
+        assert sum([sum(amnts)for amnts in res]) == two_kiiro_amnts_val
 
         # test with zero spendable amount
         coins_str = {c.prevout.to_str() for c in coins}
@@ -2100,7 +2100,7 @@ class PSWalletTestCase(TestCaseForTestnet):
         res = psman.calc_need_denoms_amounts()
         assert sum([sum(amnts)for amnts in res]) == 0
         res = psman.calc_need_denoms_amounts(on_keep_amount=True)
-        assert sum([sum(amnts)for amnts in res]) == two_dash_amnts_val
+        assert sum([sum(amnts)for amnts in res]) == two_kiiro_amnts_val
 
     def test_calc_need_denoms_amounts_on_abs_cnt(self):
         w = self.wallet
@@ -3532,7 +3532,7 @@ class PSWalletTestCase(TestCaseForTestnet):
         coins = w.get_utxos(None, excluded_addresses=w._frozen_addresses,
                             mature_only=True, include_ps=True)
         coins = [c for c in coins if not w.is_frozen_coin(c)]
-        assert sum([c.value_sats() for c in coins]) == 50000000  # 0.5 Dash
+        assert sum([c.value_sats() for c in coins]) == 50000000  # 0.5 Kiiro
 
         psman.mix_rounds = 2
         psman.keep_amount = 2
@@ -4191,7 +4191,7 @@ class PSWalletTestCase(TestCaseForTestnet):
                             mature_only=True, include_ps=True)
         coins = [c for c in coins if not w.is_frozen_coin(c)]
 
-        assert sum([c.value_sats() for c in coins]) == 350002000  # 3.5 Dash
+        assert sum([c.value_sats() for c in coins]) == 350002000  # 3.5 Kiiro
 
         tx = psman.prepare_funds_from_hw_wallet()
         assert tx.txid()
@@ -4218,7 +4218,7 @@ class PSWalletTestCase(TestCaseForTestnet):
         coins = w.get_utxos(None, excluded_addresses=w._frozen_addresses,
                             mature_only=True, include_ps=True)
         coins = [c for c in coins if not w.is_frozen_coin(c)]
-        assert sum([c.value_sats() for c in coins]) == 50000000  # 0.5 Dash
+        assert sum([c.value_sats() for c in coins]) == 50000000  # 0.5 Kiiro
 
         tx = psman.prepare_funds_from_hw_wallet()
         assert tx.txid()

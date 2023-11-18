@@ -2,7 +2,7 @@ import time
 from functools import partial
 
 from electrum import util
-from electrum.dash_ps_util import (filter_log_line, PSLogSubCat, PSStates,
+from electrum.kiiro_ps_util import (filter_log_line, PSLogSubCat, PSStates,
                                         PS_DENOMS_VALS)
 
 from kivy.clock import Clock

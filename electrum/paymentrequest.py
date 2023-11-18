@@ -56,8 +56,8 @@ if TYPE_CHECKING:
 _logger = get_logger(__name__)
 
 
-REQUEST_HEADERS = {'Accept': 'application/dash-paymentrequest', 'User-Agent': 'Dash-Electrum'}
-ACK_HEADERS = {'Content-Type':'application/dash-payment','Accept':'application/dash-paymentack','User-Agent':'Dash-Electrum'}
+REQUEST_HEADERS = {'Accept': 'application/kiiro-paymentrequest', 'User-Agent': 'Kiiro-Electrum'}
+ACK_HEADERS = {'Content-Type':'application/kiiro-payment','Accept':'application/kiiro-paymentack','User-Agent':'Kiiro-Electrum'}
 
 BIP70_NO_BROADCAST_TX_DOMAINS = [
     'anypayinc.com'
@@ -86,9 +86,9 @@ async def get_payment_request(url: str) -> 'PaymentRequest':
                 async with session.get(url) as response:
                     resp_content = await response.read()
                     response.raise_for_status()
-                    # Guard against `dash:`-URIs with invalid payment request URLs
+                    # Guard against `kiiro:`-URIs with invalid payment request URLs
                     if "Content-Type" not in response.headers \
-                    or response.headers["Content-Type"] != "application/dash-paymentrequest":
+                    or response.headers["Content-Type"] != "application/kiiro-paymentrequest":
                         data = None
                         error = "payment URL not pointing to a payment request handling server"
                     else:

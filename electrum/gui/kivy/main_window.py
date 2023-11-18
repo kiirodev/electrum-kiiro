@@ -9,7 +9,7 @@ import threading
 import asyncio
 from typing import TYPE_CHECKING, Optional, Union, Callable, Sequence
 
-from electrum.dash_ps_util import (PSPossibleDoubleSpendError,
+from electrum.kiiro_ps_util import (PSPossibleDoubleSpendError,
                                         PSSpendToPSAddressesError)
 from electrum.storage import WalletStorage, StorageReadWriteError
 from electrum.wallet_db import WalletDB
@@ -54,7 +54,7 @@ from .uix.dialogs import InfoBubble, crash_reporter
 from .uix.dialogs import OutputList, OutputItem
 from .uix.dialogs import TopLabel, RefLabel
 from .uix.dialogs.question import Question
-from .uix.dialogs.dash_kivy import TorWarnDialog
+from .uix.dialogs.kiiro_kivy import TorWarnDialog
 from .uix.dialogs.warn_dialog import WarnDialog
 from .uix.dialogs.question import Question
 
@@ -636,7 +636,7 @@ class ElectrumWindow(App, Logger):
         self.fiat_unit = self.fx.ccy if self.fx.is_enabled() else ''
         # default tab
         self.switch_to('history')
-        # bind intent for dash: URI scheme
+        # bind intent for kiiro: URI scheme
         if platform == 'android':
             from android import activity
             from jnius import autoclass
@@ -800,9 +800,9 @@ class ElectrumWindow(App, Logger):
         self._plugins_dialog.open()
 
     def kiiro_net_dialog(self):
-        from .uix.dialogs.dash_net import DashNetDialog
+        from .uix.dialogs.kiiro_net import KiiroNetDialog
         if self._kiiro_net_dialog is None:
-            self._kiiro_net_dialog = DashNetDialog(self)
+            self._kiiro_net_dialog = KiiroNetDialog(self)
         self._kiiro_net_dialog.update()
         self._kiiro_net_dialog.open()
 
@@ -818,7 +818,7 @@ class ElectrumWindow(App, Logger):
             self.settings_dialog()
         elif name == 'plugins':
             self.plugins_dialog()
-        elif name == 'dash_net':
+        elif name == 'kiiro_net':
             self.kiiro_net_dialog()
         elif name == 'privatesend':
             self.privatesend_dialog()
@@ -868,9 +868,9 @@ class ElectrumWindow(App, Logger):
         self.send_screen = None
         self.receive_screen = None
         if self.testnet:
-            self.icon = os.path.dirname(KIVY_GUI_PATH) + "/icons/electrum-dash-testnet.png"
+            self.icon = os.path.dirname(KIVY_GUI_PATH) + "/icons/electrum-kiiro-testnet.png"
         else:
-            self.icon = os.path.dirname(KIVY_GUI_PATH) + "/icons/electrum-dash.png"
+            self.icon = os.path.dirname(KIVY_GUI_PATH) + "/icons/electrum-kiiro.png"
         self.root.ids.ps_button.icon = self.ps_icon()
         self.tabs = self.root.ids['tabs']
 

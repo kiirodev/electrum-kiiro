@@ -55,7 +55,7 @@ extras_require['fast'] = extras_require['crypto']
 
 
 setup(
-    name="Kiiro-Electrum",
+    name="Electrum-Kiiro",
     version=version.ELECTRUM_VERSION,
     python_requires='>={}'.format(MIN_PYTHON_VERSION),
     install_requires=requirements,

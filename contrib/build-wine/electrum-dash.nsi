@@ -8,9 +8,9 @@
 ;Variables
 
   !define PRODUCT_NAME "Kiiro Electrum"
-  !define PRODUCT_NAME_NO_SPACE "Kiiro-Electrum"
+  !define PRODUCT_NAME_NO_SPACE "Electrum-Kiiro"
   !define PREV_PROD_NAME "Electrum-KIIRO"
-  !define PREV_PROD_NAME2 "Kiiro-Electrum"
+  !define PREV_PROD_NAME2 "Electrum-Kiiro"
   !define PRODUCT_WEB_SITE "https://github.com/kiirocoin"
   !define PRODUCT_PUBLISHER "Electrum Technologies GmbH"
   !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"

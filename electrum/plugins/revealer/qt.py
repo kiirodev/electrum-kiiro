@@ -454,7 +454,7 @@ class Plugin(RevealerPlugin):
         font = QFont('Source Sans Pro', 7, QFont.Normal)
         painter.setFont(font)
         painter.drawText(700, 2177, _("1. Place this paper on a flat and well iluminated surface."))
-        painter.drawText(700, 2277, _("2. Align your Revealer borderlines to the dashed lines on the top and left."))
+        painter.drawText(700, 2277, _("2. Align your Revealer borderlines to the kiiroed lines on the top and left."))
         painter.drawText(700, 2377, _("3. Press slightly the Revealer against the paper and read the numbers that best "
                                       "match on the opposite sides. "))
         painter.drawText(700, 2477, _("4. Type the numbers in the software"))
@@ -548,7 +548,7 @@ class Plugin(RevealerPlugin):
 
         if not calibration_sheet:
             if is_cseed: #its a secret
-                painter.setPen(QPen(Qt.black, 1, Qt.DashDotDotLine))
+                painter.setPen(QPen(Qt.black, 1, Qt.KiiroDotDotLine))
                 painter.drawLine(0, dist_v, base_img.width(), dist_v)
                 painter.drawLine(dist_h, 0,  dist_h, base_img.height())
                 painter.drawLine(0, base_img.height()-dist_v, base_img.width(), base_img.height()-(dist_v))
@@ -649,11 +649,11 @@ class Plugin(RevealerPlugin):
             cal_painter.drawImage(0,0, base_img)
 
             #black lines in the middle of border top left only
-            cal_painter.setPen(QPen(Qt.black, 1, Qt.DashDotDotLine))
+            cal_painter.setPen(QPen(Qt.black, 1, Qt.KiiroDotDotLine))
             cal_painter.drawLine(0, dist_v, base_img.width(), dist_v)
             cal_painter.drawLine(dist_h, 0,  dist_h, base_img.height())
 
-            pen = QPen(Qt.black, 2, Qt.DashDotDotLine)
+            pen = QPen(Qt.black, 2, Qt.KiiroDotDotLine)
             cal_painter.setPen(pen)
             n=15
 

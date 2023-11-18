@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Dash-Electrum - lightweight Dash client
-# Copyright (C) 2019 Dash Developers
+# Kiiro-Electrum - lightweight Kiiro client
+# Copyright (C) 2019 Kiiro Developers
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -36,7 +36,7 @@ from struct import pack
 from . import constants, util
 from .constants import CHUNK_SIZE
 from .crypto import sha256d
-from .dash_msg import DashSMLEntry, DashQFCommitMsg
+from .kiiro_msg import KiiroSMLEntry, KiiroQFCommitMsg
 from .logging import Logger
 from .simple_config import SimpleConfig
 from .transaction import Transaction, BCDataStream, SerializationError
@@ -54,7 +54,7 @@ PROTX_INFO_FNAME = 'protx_info.gz'
 
 
 class PartialMerkleTree(namedtuple('PartialMerkleTree', 'total hashes flags')):
-    '''Class representing CPartialMerkleTree of dashd'''
+    '''Class representing CPartialMerkleTree of kiirod'''
     @classmethod
     def read_bytes(cls, raw_bytes):
         vds = BCDataStream()
@@ -105,8 +105,8 @@ class MNList(Logger):
         self.config = (SimpleConfig(config) if isinstance(config, dict)
                        else config)
         self.network = network
-        self.dash_net = network.dash_net
-        self.dash_net_enabled = config.get('run_dash_net', False)
+        self.kiiro_net = network.kiiro_net
+        self.kiiro_net_enabled = config.get('run_kiiro_net', False)
         self.load_mns = config.get('protx_load_mns', True)
 
         self.recent_list_lock = threading.Lock()
@@ -198,13 +198,13 @@ class MNList(Logger):
 
     @property
     def llmq_loading(self):
-        if not self.dash_net_enabled:
+        if not self.kiiro_net_enabled:
             return False
         return self.llmq_tip > self.llmq_height
 
     @property
     def llmq_ready(self):
-        if not self.dash_net_enabled or not self.network:
+        if not self.kiiro_net_enabled or not self.network:
             return False
         server_height = self.network.get_server_height()
         if server_height <= constants.net.DIP3_ACTIVATION_HEIGHT:
@@ -240,11 +240,11 @@ class MNList(Logger):
                 rl = json.loads(data.decode('utf-8'))
                 # Read values from hex strings
                 for k, v in rl['protx_mns'].items():
-                    rl['protx_mns'][k] = DashSMLEntry.from_hex(v)
+                    rl['protx_mns'][k] = KiiroSMLEntry.from_hex(v)
                 for k, v in rl['sml_hashes'].items():
                     rl['sml_hashes'][k] = bfh(v)[::-1]
                 for k, v in rl['quorums'].items():
-                    rl['quorums'][k] = DashQFCommitMsg.from_hex(v)
+                    rl['quorums'][k] = KiiroQFCommitMsg.from_hex(v)
                 for k, v in rl['llmq_hashes'].items():
                     rl['llmq_hashes'][k] = bfh(v)[::-1]
                 return rl
@@ -325,8 +325,8 @@ class MNList(Logger):
         self.diff_deleted_mns = []
         self.diff_hashes = []
         self.notify('mn-list-diff-updated')
-        if self.dash_net_enabled:
-            coro = self.dash_net.getmnlistd()
+        if self.kiiro_net_enabled:
+            coro = self.kiiro_net.getmnlistd()
         else:
             coro = self.network.request_protx_diff()
         asyncio.run_coroutine_threadsafe(coro, self.network.asyncio_loop)
@@ -350,7 +350,7 @@ class MNList(Logger):
     async def on_network_status(self, event):
         if not self.wallets_updated:
             return
-        if (not self.dash_net_enabled
+        if (not self.kiiro_net_enabled
                 and self.network.is_connected()
                 and self.protx_loading):
             await self.network.request_protx_diff()
@@ -380,37 +380,37 @@ class MNList(Logger):
             util.trigger_callback('blockchain_updated')
         if not self.wallets_updated:
             return
-        if self.dash_net_enabled:
+        if self.kiiro_net_enabled:
             if self.llmq_loading:
-                await self.dash_net.getmnlistd()
+                await self.kiiro_net.getmnlistd()
             elif self.protx_loading:
-                await self.dash_net.getmnlistd(get_mns=True)
+                await self.kiiro_net.getmnlistd(get_mns=True)
         elif self.protx_loading:
             await self.network.request_protx_diff()
 
     async def on_network_error(self, key, val):
         await asyncio.sleep(2)
-        if self.dash_net_enabled:
+        if self.kiiro_net_enabled:
             if self.llmq_loading:
-                await self.dash_net.getmnlistd()
+                await self.kiiro_net.getmnlistd()
             elif self.protx_loading:
-                await self.dash_net.getmnlistd(get_mns=True)
+                await self.kiiro_net.getmnlistd(get_mns=True)
         elif self.protx_loading:
             await self.network.request_protx_diff()
 
-    async def on_dash_net_updated(self, key, *args):
+    async def on_kiiro_net_updated(self, key, *args):
         status = args[0]
         if status == 'enabled':
-            self.dash_net_enabled = True
+            self.kiiro_net_enabled = True
         elif status == 'disabled':
-            self.dash_net_enabled = False
+            self.kiiro_net_enabled = False
         if not self.wallets_updated:
             return
-        if self.dash_net_enabled:
+        if self.kiiro_net_enabled:
             if self.llmq_loading:
-                await self.dash_net.getmnlistd()
+                await self.kiiro_net.getmnlistd()
             elif self.protx_loading:
-                await self.dash_net.getmnlistd(get_mns=True)
+                await self.kiiro_net.getmnlistd(get_mns=True)
         elif self.protx_loading:
             await self.network.request_protx_diff()
 
@@ -422,8 +422,8 @@ class MNList(Logger):
         util.register_callback(self.on_network_updated, ['network_updated'])
         util.register_callback(self.on_bchain_updated, ['blockchain_updated'])
         util.register_callback(self.on_wallet_updated, ['wallet_updated'])
-        # dash_net
-        util.register_callback(self.on_dash_net_updated, ['dash-net-updated'])
+        # kiiro_net
+        util.register_callback(self.on_kiiro_net_updated, ['kiiro-net-updated'])
         util.register_callback(self.on_mnlistdiff, ['mnlistdiff'])
         # MNList
         util.register_callback(self.on_network_error, ['network-error'])
@@ -436,8 +436,8 @@ class MNList(Logger):
         util.unregister_callback(self.on_network_status)
         util.unregister_callback(self.on_wallet_updated)
         util.unregister_callback(self.on_bchain_updated)
-        # dash_net
-        util.unregister_callback(self.on_dash_net_updated)
+        # kiiro_net
+        util.unregister_callback(self.on_kiiro_net_updated)
         util.unregister_callback(self.on_mnlistdiff)
         # MNList
         util.unregister_callback(self.on_network_error)
@@ -668,7 +668,7 @@ class MNList(Logger):
 
             return True
 
-        if await self.dash_net.loop.run_in_executor(None, process_mnlistdiff):
+        if await self.kiiro_net.loop.run_in_executor(None, process_mnlistdiff):
             if self.diff_deleted_mns:
                 for h in self.diff_deleted_mns:
                     self.protx_info.pop(h, None)
@@ -679,9 +679,9 @@ class MNList(Logger):
                         self.protx_info.pop(h, None)
 
             if self.llmq_loading:
-                await self.dash_net.getmnlistd()
+                await self.kiiro_net.getmnlistd()
             elif self.protx_loading:
-                await self.dash_net.getmnlistd(get_mns=True)
+                await self.kiiro_net.getmnlistd(get_mns=True)
             self._save_recent_list()
             self.notify('mn-list-diff-updated')
 
@@ -746,7 +746,7 @@ class MNList(Logger):
 
             for mn in diff.get('mnList', []):
                 protx_hash = mn.get('proRegTxHash', '')
-                sml_entry = DashSMLEntry.from_dict(mn)
+                sml_entry = KiiroSMLEntry.from_dict(mn)
                 sml_hash = sha256d(sml_entry.serialize())
                 protx_new[protx_hash] = sml_entry
                 sml_hashes_new[protx_hash] = sml_hash
@@ -773,7 +773,7 @@ class MNList(Logger):
                                         diff.get('mnList', [])))
             return True
 
-        if await self.dash_net.loop.run_in_executor(None, process_protx_diff):
+        if await self.kiiro_net.loop.run_in_executor(None, process_protx_diff):
             if self.diff_deleted_mns:
                 for h in self.diff_deleted_mns:
                     self.protx_info.pop(h, None)

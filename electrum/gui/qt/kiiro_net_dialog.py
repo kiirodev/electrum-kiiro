@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QGridLayout, QDialog, QVBoxLayout, QCheckBox,
                              QTreeWidget, QTreeWidgetItem, QMenu, QHeaderView)
 
 from electrum import constants, util
-from electrum.dash_net import MIN_PEERS_LIMIT, MAX_PEERS_LIMIT
+from electrum.kiiro_net import MIN_PEERS_LIMIT, MAX_PEERS_LIMIT
 from electrum.i18n import _
 from electrum.logging import get_logger
 
@@ -22,7 +22,7 @@ _logger = get_logger(__name__)
 MATCH_STR_CS = Qt.MatchFixedString | Qt.MatchCaseSensitive
 
 
-class DashPeersWidget(QTreeWidget):
+class KiiroPeersWidget(QTreeWidget):
     class Columns(IntEnum):
         PEER = 0
         UAGENT = 1
@@ -49,62 +49,62 @@ class DashPeersWidget(QTreeWidget):
         item = self.currentItem()
         if not item:
             return
-        dash_net = self.parent.network.dash_net
+        kiiro_net = self.parent.network.kiiro_net
         peer = item.text(self.Columns.PEER)
         menu = QMenu()
         menu.addAction(_('Disconnect'), lambda: self.disconnect(peer))
-        if not dash_net.use_static_peers:
+        if not kiiro_net.use_static_peers:
             menu.addAction(_('Ban'),
                            lambda: self.disconnect(peer, 'ban from gui'))
         menu.exec_(self.viewport().mapToGlobal(position))
 
     def disconnect(self, peer, msg=None):
-        dash_net = self.parent.network.dash_net
-        dash_peer = dash_net.peers.get(peer)
-        if dash_peer:
+        kiiro_net = self.parent.network.kiiro_net
+        kiiro_peer = kiiro_net.peers.get(peer)
+        if kiiro_peer:
             if msg:
-                dash_peer.ban(msg)
-            dash_peer.close()
+                kiiro_peer.ban(msg)
+            kiiro_peer.close()
 
     def update(self, event=None, args=None):
-        dash_net = self.parent.network.dash_net
-        peers = dash_net.peers
+        kiiro_net = self.parent.network.kiiro_net
+        peers = kiiro_net.peers
         if event is None:
             self.clear()
-            for peer, dash_peer in sorted(list(peers.items())):
-                self.add_peer(peer, dash_peer)
-        elif event == 'dash-peers-updated':
+            for peer, kiiro_peer in sorted(list(peers.items())):
+                self.add_peer(peer, kiiro_peer)
+        elif event == 'kiiro-peers-updated':
             action, peer = args
             if action == 'added':
-                dash_peer = peers.get(peer)
-                if dash_peer:
-                    self.add_peer(peer, dash_peer, insert=True)
+                kiiro_peer = peers.get(peer)
+                if kiiro_peer:
+                    self.add_peer(peer, kiiro_peer, insert=True)
             elif action == 'removed':
                 items = self.findItems(peer, MATCH_STR_CS)
                 if items:
                     idx = self.indexOfTopLevelItem(items[0])
                     self.takeTopLevelItem(idx)
-        elif event == 'dash-net-activity':
-            for peer, dash_peer in sorted(list(peers.items())):
+        elif event == 'kiiro-net-activity':
+            for peer, kiiro_peer in sorted(list(peers.items())):
                 items = self.findItems(peer, MATCH_STR_CS)
                 if items:
-                    ping_time = str(dash_peer.ping_time)
-                    read_kbytes = str(round(dash_peer.read_bytes/1024, 1))
-                    write_kbytes = str(round(dash_peer.write_bytes/1024, 1))
+                    ping_time = str(kiiro_peer.ping_time)
+                    read_kbytes = str(round(kiiro_peer.read_bytes/1024, 1))
+                    write_kbytes = str(round(kiiro_peer.write_bytes/1024, 1))
                     for i in items:
                         i.setText(self.Columns.PING, ping_time)
                         i.setText(self.Columns.READ, read_kbytes)
                         i.setText(self.Columns.WRITE, write_kbytes)
         super().update()
 
-    def add_peer(self, peer, dash_peer, insert=False):
-        dash_net = self.parent.network.dash_net
-        peers = dash_net.peers
-        v = dash_peer.version
+    def add_peer(self, peer, kiiro_peer, insert=False):
+        kiiro_net = self.parent.network.kiiro_net
+        peers = kiiro_net.peers
+        v = kiiro_peer.version
         user_agent = v.user_agent.decode('utf-8')
-        ping_time = str(dash_peer.ping_time)
-        read_kbytes = str(round(dash_peer.read_bytes/1024, 1))
-        write_kbytes = str(round(dash_peer.write_bytes/1024, 1))
+        ping_time = str(kiiro_peer.ping_time)
+        read_kbytes = str(round(kiiro_peer.read_bytes/1024, 1))
+        write_kbytes = str(round(kiiro_peer.write_bytes/1024, 1))
         peers_item = QTreeWidgetItem([peer, user_agent, ping_time,
                                       read_kbytes, write_kbytes])
         if peers:
@@ -137,8 +137,8 @@ class SporksWidget(QTreeWidget):
         h.setSectionResizeMode(self.Columns.DEFAULT, mode)
 
     def update(self):
-        dash_net = self.parent.network.dash_net
-        sporks_dict = dash_net.sporks.as_dict()
+        kiiro_net = self.parent.network.kiiro_net
+        sporks_dict = kiiro_net.sporks.as_dict()
         self.clear()
         for k in sorted(list(sporks_dict.keys())):
             name = sporks_dict[k]['name']
@@ -181,13 +181,13 @@ class BanlistWidget(QTreeWidget):
         menu.exec_(self.viewport().mapToGlobal(position))
 
     def unban(self, peer):
-        dash_net = self.parent.network.dash_net
+        kiiro_net = self.parent.network.kiiro_net
         if peer:
-            dash_net._remove_banned_peer(peer)
+            kiiro_net._remove_banned_peer(peer)
 
     def update(self, event=None, args=None):
-        dash_net = self.parent.network.dash_net
-        banlist = dash_net.banlist
+        kiiro_net = self.parent.network.kiiro_net
+        banlist = kiiro_net.banlist
         if event is None:
             self.clear()
             for peer in sorted(list(banlist.keys())):
@@ -204,8 +204,8 @@ class BanlistWidget(QTreeWidget):
         super().update()
 
     def add_peer(self, peer, insert=False):
-        dash_net = self.parent.network.dash_net
-        banlist = dash_net.banlist
+        kiiro_net = self.parent.network.kiiro_net
+        banlist = kiiro_net.banlist
         ua = banlist[peer]['ua']
         at = str(time.ctime(banlist[peer]['at']))
         msg = str(banlist[peer]['msg'])
@@ -221,7 +221,7 @@ class BanlistWidget(QTreeWidget):
             self.addTopLevelItem(banlist_item)
 
 
-class DashNetDialogLayout(object):
+class KiiroNetDialogLayout(object):
 
     def __init__(self, network, config, parent):
         self.parent = parent
@@ -229,11 +229,11 @@ class DashNetDialogLayout(object):
         self.config = config
 
         self.tabs = tabs = QTabWidget()
-        dash_net_tab = QWidget()
+        kiiro_net_tab = QWidget()
         sporks_tab = QWidget()
         banlist_tab = QWidget()
         bls_speed_tab = QWidget()
-        tabs.addTab(dash_net_tab, _('Dash Network'))
+        tabs.addTab(kiiro_net_tab, _('Kiiro Network'))
         tabs.addTab(sporks_tab, _('Sporks'))
         tabs.addTab(banlist_tab, _('Banlist'))
 
@@ -260,7 +260,7 @@ class DashNetDialogLayout(object):
             def update_bls_speed():
                 if self.parent.isVisible() and bls_speed_tab.isVisible():
                     start_t = time.time()
-                    res = self.network.dash_net.test_bls_speed()
+                    res = self.network.kiiro_net.test_bls_speed()
                     res_t = time.time() - start_t
                     _logger.info(f'Test BLS Speed: res={res}, time={res_t}')
                     self.min_t = min(self.min_t, res_t)
@@ -279,10 +279,10 @@ class DashNetDialogLayout(object):
                     self.timer.start()
             tabs.currentChanged.connect(on_tabs_current_changed)
 
-        # Dash Network tab
-        grid = QGridLayout(dash_net_tab)
+        # Kiiro Network tab
+        grid = QGridLayout(kiiro_net_tab)
         grid.setSpacing(8)
-        dash_net = self.network.dash_net
+        kiiro_net = self.network.kiiro_net
         net = self.network
 
         # row 0
@@ -293,54 +293,54 @@ class DashNetDialogLayout(object):
         grid.addWidget(self.read_kb, 0, 2, 1, 2)
         grid.addWidget(self.write_kb, 0, 4, 1, 2)
 
-        self.run_dash_net_cb = QCheckBox(_('Enable Dash Network'))
-        self.run_dash_net_cb.setChecked(self.config.get('run_dash_net', True))
-        run_dash_net_modifiable = self.config.is_modifiable('run_dash_net')
-        self.run_dash_net_cb.setEnabled(run_dash_net_modifiable)
+        self.run_kiiro_net_cb = QCheckBox(_('Enable Kiiro Network'))
+        self.run_kiiro_net_cb.setChecked(self.config.get('run_kiiro_net', True))
+        run_kiiro_net_modifiable = self.config.is_modifiable('run_kiiro_net')
+        self.run_kiiro_net_cb.setEnabled(run_kiiro_net_modifiable)
 
-        def on_run_dash_net_cb_clicked(run_dash_net):
-            self.config.set_key('run_dash_net', run_dash_net, True)
-            net.run_from_another_thread(net.dash_net.set_parameters())
-        self.run_dash_net_cb.clicked.connect(on_run_dash_net_cb_clicked)
+        def on_run_kiiro_net_cb_clicked(run_kiiro_net):
+            self.config.set_key('run_kiiro_net', run_kiiro_net, True)
+            net.run_from_another_thread(net.kiiro_net.set_parameters())
+        self.run_kiiro_net_cb.clicked.connect(on_run_kiiro_net_cb_clicked)
 
-        grid.addWidget(self.run_dash_net_cb, 0, 6, 1, 2)
+        grid.addWidget(self.run_kiiro_net_cb, 0, 6, 1, 2)
 
         # row 1
-        is_cmd_dash_peers = dash_net.is_cmd_dash_peers
-        use_static_peers = dash_net.use_static_peers
+        is_cmd_kiiro_peers = kiiro_net.is_cmd_kiiro_peers
+        use_static_peers = kiiro_net.use_static_peers
 
         static_peers_label = QLabel(_('Static Peers:'))
         grid.addWidget(static_peers_label, 1, 0, 1, 1)
 
-        self.dash_peers_e = QLineEdit()
-        self.dash_peers_e.setText(dash_net.dash_peers_as_str())
-        self.dash_peers_e.setReadOnly(is_cmd_dash_peers)
+        self.kiiro_peers_e = QLineEdit()
+        self.kiiro_peers_e.setText(kiiro_net.kiiro_peers_as_str())
+        self.kiiro_peers_e.setReadOnly(is_cmd_kiiro_peers)
 
-        def on_dash_peers_editing_end():
-            if is_cmd_dash_peers:
+        def on_kiiro_peers_editing_end():
+            if is_cmd_kiiro_peers:
                 return
-            res = dash_net.dash_peers_from_str(self.dash_peers_e.text())
+            res = kiiro_net.kiiro_peers_from_str(self.kiiro_peers_e.text())
             if type(res) == str:
                 self.err_label.setText(f'Error: {res}')
             else:
-                self.config.set_key('dash_peers', res, True)
-                if dash_net.use_static_peers:
-                    net.run_from_another_thread(net.dash_net.set_parameters())
-        self.dash_peers_e.editingFinished.connect(on_dash_peers_editing_end)
+                self.config.set_key('kiiro_peers', res, True)
+                if kiiro_net.use_static_peers:
+                    net.run_from_another_thread(net.kiiro_net.set_parameters())
+        self.kiiro_peers_e.editingFinished.connect(on_kiiro_peers_editing_end)
 
-        def on_dash_peers_changed():
+        def on_kiiro_peers_changed():
             self.err_label.setText('')
-        self.dash_peers_e.textChanged.connect(on_dash_peers_changed)
+        self.kiiro_peers_e.textChanged.connect(on_kiiro_peers_changed)
 
-        grid.addWidget(self.dash_peers_e, 1, 1, 1, 5)
+        grid.addWidget(self.kiiro_peers_e, 1, 1, 1, 5)
 
         self.use_static_cb = QCheckBox(_('Use Static Peers'))
         self.use_static_cb.setChecked(use_static_peers)
-        self.use_static_cb.setEnabled(not is_cmd_dash_peers)
+        self.use_static_cb.setEnabled(not is_cmd_kiiro_peers)
 
         def on_use_static_cb_clicked(use_static):
-            self.config.set_key('dash_use_static_peers', use_static, True)
-            net.run_from_another_thread(net.dash_net.set_parameters())
+            self.config.set_key('kiiro_use_static_peers', use_static, True)
+            net.run_from_another_thread(net.kiiro_net.set_parameters())
         self.use_static_cb.clicked.connect(on_use_static_cb_clicked)
 
         grid.addWidget(self.use_static_cb, 1, 6, 1, 2)
@@ -356,28 +356,28 @@ class DashNetDialogLayout(object):
         max_peers_label = _('Max Peers:')
         grid.addWidget(QLabel(max_peers_label), 3, 6, 1, 1)
         self.max_peers = QSpinBox()
-        self.max_peers.setValue(dash_net.max_peers)
+        self.max_peers.setValue(kiiro_net.max_peers)
         self.max_peers.setRange(MIN_PEERS_LIMIT, MAX_PEERS_LIMIT)
         grid.addWidget(self.max_peers, 3, 7, 1, 1)
 
         def on_change_max_peers(max_peers):
-            dash_net.max_peers = max_peers
+            kiiro_net.max_peers = max_peers
         self.max_peers.valueChanged.connect(on_change_max_peers)
 
         # row 4
-        self.dash_peers_list = DashPeersWidget(self)
-        grid.addWidget(self.dash_peers_list, 4, 0, 1, -1)
+        self.kiiro_peers_list = KiiroPeersWidget(self)
+        grid.addWidget(self.kiiro_peers_list, 4, 0, 1, -1)
 
-        # Dash Sporks tab
+        # Kiiro Sporks tab
         vbox = QVBoxLayout(sporks_tab)
-        sporks_label = QLabel(_('Dash Sporks Values'))
+        sporks_label = QLabel(_('Kiiro Sporks Values'))
         self.sporks_list = SporksWidget(self)
         vbox.addWidget(sporks_label)
         vbox.addWidget(self.sporks_list)
 
-        # Dash Banlist tab
+        # Kiiro Banlist tab
         vbox = QVBoxLayout(banlist_tab)
-        banlist_label = QLabel(_('Banned Dash Peers'))
+        banlist_label = QLabel(_('Banned Kiiro Peers'))
         self.banlist_list = BanlistWidget(self)
         vbox.addWidget(banlist_label)
         vbox.addWidget(self.banlist_list)
@@ -394,68 +394,68 @@ class DashNetDialogLayout(object):
             return
 
         if event is None:
-            self.update_dash_net_tab()
+            self.update_kiiro_net_tab()
             self.sporks_list.update()
             self.banlist_list.update()
-        elif event in ['dash-peers-updated', 'dash-net-activity']:
-            self.update_dash_net_tab(event, args)
+        elif event in ['kiiro-peers-updated', 'kiiro-net-activity']:
+            self.update_kiiro_net_tab(event, args)
         elif event == 'sporks-activity':
             self.sporks_list.update()
-        elif event == 'dash-banlist-updated':
+        elif event == 'kiiro-banlist-updated':
             self.banlist_list.update(event, args)
 
-    def update_dash_net_tab(self, event=None, args=None):
-        dash_net = self.network.dash_net
-        self.dash_peers_list.update(event, args)
-        if event in [None, 'dash-net-activity']:
-            read_bytes = dash_net.read_bytes
-            write_bytes = dash_net.write_bytes
+    def update_kiiro_net_tab(self, event=None, args=None):
+        kiiro_net = self.network.kiiro_net
+        self.kiiro_peers_list.update(event, args)
+        if event in [None, 'kiiro-net-activity']:
+            read_bytes = kiiro_net.read_bytes
+            write_bytes = kiiro_net.write_bytes
             both_kb = round((write_bytes + read_bytes)/1024, 1)
             read_kb = round(read_bytes/1024, 1)
             write_kb = round(write_bytes/1024, 1)
             self.both_kb.setText(_('Total') + f': {both_kb} KiB')
             self.read_kb.setText(_('Received') + f': {read_kb} KiB')
             self.write_kb.setText(_('Sent') + f': {write_kb} KiB')
-        if event in [None, 'dash-peers-updated']:
-            status = _('Connected Peers') + f': {len(dash_net.peers)}'
+        if event in [None, 'kiiro-peers-updated']:
+            status = _('Connected Peers') + f': {len(kiiro_net.peers)}'
             self.status_label.setText(status)
 
     def layout(self):
         return self.layout_
 
 
-class DashNetDialog(QDialog):
-    def __init__(self, *, network, config, dash_net_sobj):
+class KiiroNetDialog(QDialog):
+    def __init__(self, *, network, config, kiiro_net_sobj):
         QDialog.__init__(self)
-        self.setWindowTitle(_('Dash Network'))
+        self.setWindowTitle(_('Kiiro Network'))
         self.setMinimumSize(700, 400)
         self.is_testnet = constants.net.TESTNET
         self.network = network
-        self.dnlayout = DashNetDialogLayout(network, config, self)
-        self.dash_net_sobj = dash_net_sobj
+        self.dnlayout = KiiroNetDialogLayout(network, config, self)
+        self.kiiro_net_sobj = kiiro_net_sobj
         vbox = QVBoxLayout(self)
         vbox.addLayout(self.dnlayout.layout())
         vbox.addLayout(Buttons(CloseButton(self)))
-        self.dash_net_sobj.dlg.connect(self.on_updated)
+        self.kiiro_net_sobj.dlg.connect(self.on_updated)
         self._cleaned_up = False
 
     def show(self):
-        super(DashNetDialog, self).show()
+        super(KiiroNetDialog, self).show()
         if self.network:
-            util.register_callback(self.on_dash_net,
-                                   ['dash-peers-updated',
-                                    'dash-net-activity',
+            util.register_callback(self.on_kiiro_net,
+                                   ['kiiro-peers-updated',
+                                    'kiiro-net-activity',
                                     'sporks-activity',
-                                    'dash-banlist-updated'])
+                                    'kiiro-banlist-updated'])
 
     def closeEvent(self, e):
         if self.dnlayout.err_label.text():
             e.ignore()
         if self.network:
-            util.unregister_callback(self.on_dash_net)
+            util.unregister_callback(self.on_kiiro_net)
 
-    def on_dash_net(self, event, *args):
-        signal_obj = self.dash_net_sobj
+    def on_kiiro_net(self, event, *args):
+        signal_obj = self.kiiro_net_sobj
         if signal_obj:
             signal_obj.dlg.emit(event, args)
 
@@ -466,5 +466,5 @@ class DashNetDialog(QDialog):
         if self._cleaned_up:
             return
         self._cleaned_up = True
-        self.dash_net_sobj.dlg.disconnect()
-        self.dash_net_sobj = None
+        self.kiiro_net_sobj.dlg.disconnect()
+        self.kiiro_net_sobj = None

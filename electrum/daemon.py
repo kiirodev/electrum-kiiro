@@ -183,7 +183,7 @@ class AuthenticatedServer(Logger):
             try:
                 await self.authenticate(request.headers)
             except AuthenticationInvalidOrMissing:
-                return web.Response(headers={"WWW-Authenticate": "Basic realm=Dash-Electrum"},
+                return web.Response(headers={"WWW-Authenticate": "Basic realm=Kiiro-Electrum"},
                                     text='Unauthorized', status=401)
             except AuthenticationCredentialsInvalid:
                 return web.Response(text='Forbidden', status=403)
@@ -345,7 +345,7 @@ class PayServer(Logger):
         if not request:
             return web.HTTPNotFound()
         pr = make_request(self.config, request)
-        return web.Response(body=pr.SerializeToString(), content_type='application/dash-paymentrequest')
+        return web.Response(body=pr.SerializeToString(), content_type='application/kiiro-paymentrequest')
 
     async def get_status(self, request):
         ws = web.WebSocketResponse()

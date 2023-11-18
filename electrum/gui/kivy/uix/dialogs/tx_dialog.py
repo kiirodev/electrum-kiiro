@@ -12,7 +12,7 @@ from kivy.uix.label import Label
 from kivy.uix.dropdown import DropDown
 from kivy.uix.button import Button
 
-from electrum.dash_tx import SPEC_TX_NAMES
+from electrum.kiiro_tx import SPEC_TX_NAMES
 from electrum.util import InvalidPassword, bfh
 from electrum.address_synchronizer import TX_HEIGHT_LOCAL
 from electrum.transaction import Transaction, PartialTransaction

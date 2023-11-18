@@ -496,7 +496,7 @@ class Commands:
     @command('')
     async def dumpprivkeys(self):
         """Deprecated."""
-        return "This command is deprecated. Use a pipe instead: 'electrum-dash listaddresses | electrum-dash getprivatekeys - '"
+        return "This command is deprecated. Use a pipe instead: 'electrum-kiiro listaddresses | electrum-kiiro getprivatekeys - '"
 
     @command('')
     async def validateaddress(self, address):
@@ -1105,10 +1105,10 @@ config_variables = {
     'addrequest': {
         'ssl_privkey': 'Path to your SSL private key, needed to sign the request.',
         'ssl_chain': 'Chain of SSL certificates, needed for signed requests. Put your certificate at the top and the root CA at the end',
-        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of dash: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.dash.org/\')\"',
+        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of kiiro: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.kiiro.org/\')\"',
     },
     'listrequests':{
-        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of dash: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.dash.org/\')\"',
+        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of kiiro: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.kiiro.org/\')\"',
     }
 }
 
@@ -1172,8 +1172,8 @@ def add_network_options(parser):
     parser.add_argument("-p", "--proxy", dest="proxy", default=None, help="set proxy [type:]host[:port] (or 'none' to disable proxy), where type is socks4,socks5 or http")
     parser.add_argument("--noonion", action="store_true", dest="noonion", default=None, help="do not try to connect to onion servers")
     parser.add_argument("--skipmerklecheck", action="store_true", dest="skipmerklecheck", default=None, help="Tolerate invalid merkle proofs from server")
-    parser.add_argument("--dash-peer", action="append", dest="dash_peers", default=None, help="add dash network peer host[:port]")
-    parser.add_argument("--no-dash-net", action="store_false", default=None, dest="run_dash_net", help="do not run dash network")
+    parser.add_argument("--kiiro-peer", action="append", dest="kiiro_peers", default=None, help="add kiiro network peer host[:port]")
+    parser.add_argument("--no-kiiro-net", action="store_false", default=None, dest="run_kiiro_net", help="do not run kiiro network")
     parser.add_argument("--no-load-mns", action="store_false", default=None, dest="protx_load_mns", help="do not load protx Masternodes")
 
 def add_global_options(parser):
@@ -1181,7 +1181,7 @@ def add_global_options(parser):
     group = parser.add_argument_group('global options')
     group.add_argument("-v", dest="verbosity", help="Set verbosity (log levels)", default='')
     group.add_argument("-V", dest="verbosity_shortcuts", help="Set verbosity (shortcut-filter list)", default='')
-    group.add_argument("-D", "--dir", dest="electrum_path", help="electrum-dash directory")
+    group.add_argument("-D", "--dir", dest="electrum_path", help="electrum-kiiro directory")
     group.add_argument("-P", "--portable", action="store_true", dest="portable", default=False, help="Use local 'electrum_data' directory")
     group.add_argument("--testnet", action="store_true", dest="testnet", default=force_testnet, help="Use Testnet")
     group.add_argument("--regtest", action="store_true", dest="regtest", default=False, help="Use Regtest")
@@ -1196,13 +1196,13 @@ def add_wallet_option(parser):
 def get_parser():
     # create main parser
     parser = argparse.ArgumentParser(
-        epilog="Run 'electrum-dash help <command>' to see the help for a command")
+        epilog="Run 'electrum-kiiro help <command>' to see the help for a command")
     add_global_options(parser)
     add_wallet_option(parser)
     subparsers = parser.add_subparsers(dest='cmd', metavar='<command>')
     # gui
     parser_gui = subparsers.add_parser('gui', description="Run Kiiro Electrum Graphical User Interface.", help="Run GUI (default)")
-    parser_gui.add_argument("url", nargs='?', default=None, help="dash URI (or bip70 file)")
+    parser_gui.add_argument("url", nargs='?', default=None, help="kiiro URI (or bip70 file)")
     parser_gui.add_argument("-g", "--gui", dest="gui", help="select graphical user interface", choices=['qt', 'kivy', 'text', 'stdio'])
     parser_gui.add_argument("-m", action="store_true", dest="hide_gui", default=False, help="hide GUI on startup")
     parser_gui.add_argument("-L", "--lang", dest="language", default=None, help="default language used in GUI")

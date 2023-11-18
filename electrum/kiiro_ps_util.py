@@ -12,8 +12,8 @@ import attr
 
 from . import constants, util
 from .bitcoin import is_address, COIN
-from .dash_ps_net import PSDenoms
-from .dash_tx import PSTxTypes, SPEC_TX_NAMES
+from .kiiro_ps_net import PSDenoms
+from .kiiro_tx import PSTxTypes, SPEC_TX_NAMES
 from .i18n import _
 from .transaction import Transaction
 from .util import IntEnumWithCheck, profiler
@@ -645,7 +645,7 @@ class PSOptsMixin:
             return _('This amount acts as a threshold to turn off'
                      " PrivateSend mixing once it's reached.")
         else:
-            return _('Amount of Dash to keep anonymized')
+            return _('Amount of Kiiro to keep anonymized')
 
     @property
     def mix_rounds(self):

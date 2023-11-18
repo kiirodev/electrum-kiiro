@@ -48,7 +48,7 @@ except ImportError as e:
     if not (isinstance(e, ModuleNotFoundError) and e.name == 'btchip'):
         _logger.exception('error importing ledger plugin deps')
     BTCHIP = False
-    btchip = object  # to test whithout btchip modules (see btchip_dash class)
+    btchip = object  # to test whithout btchip modules (see btchip_kiiro class)
 
 MSG_NEEDS_FW_UPDATE_GENERIC = _('Firmware version too old. Please update at') + \
                       ' https://www.ledgerwallet.com'
@@ -71,7 +71,7 @@ def test_pin_unlocked(func):
     return catch_exception
 
 
-class btchip_dash(btchip):
+class btchip_kiiro(btchip):
     def __init__(self, dongle):
         btchip.__init__(self, dongle)
 
@@ -169,7 +169,7 @@ class Ledger_Client(HardwareClientBase):
     def __init__(self, hidDevice, *, product_key: Tuple[int, int],
                  plugin: HW_PluginBase):
         HardwareClientBase.__init__(self, plugin=plugin)
-        self.dongleObject = btchip_dash(hidDevice)
+        self.dongleObject = btchip_kiiro(hidDevice)
         self.preflightDone = False
         self._product_key = product_key
         self._soft_device_id = None
@@ -316,7 +316,7 @@ class Ledger_Client(HardwareClientBase):
                 self.perform_hw1_preflight()
             except BTChipException as e:
                 if (e.sw == 0x6d00 or e.sw == 0x6700):
-                    raise UserFacingException(_("Device not in Dash mode")) from e
+                    raise UserFacingException(_("Device not in Kiiro mode")) from e
                 raise e
             self.preflightDone = True
 

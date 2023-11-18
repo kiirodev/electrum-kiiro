@@ -56,7 +56,7 @@ from . import dns_hacks
 from .transaction import Transaction
 from .constants import CHUNK_SIZE
 from .blockchain import Blockchain, HEADER_SIZE
-from .dash_net import DashNet
+from .kiiro_net import KiiroNet
 from .interface import (Interface, PREFERRED_NETWORK_PROTOCOL,
                         RequestTimedOut, NetworkTimeout, BUCKET_NAME_OF_ONION_SERVERS,
                         NetworkException, RequestCorrupted, ServerAddr)
@@ -361,8 +361,8 @@ class Network(Logger, NetworkRetryManager[ServerAddr]):
         # protx info responses data
         self.protx_info_resp = []
 
-        # create DashNet
-        self.dash_net = DashNet(self, config)
+        # create KiiroNet
+        self.kiiro_net = KiiroNet(self, config)
         # create MNList instance
         from .protx_list import MNList
         self.mn_list = MNList(self, config)
@@ -631,7 +631,7 @@ class Network(Logger, NetworkRetryManager[ServerAddr]):
                 await self.switch_to_interface(server)
             else:
                 await self.switch_lagging_interface()
-        await self.dash_net.set_parameters()
+        await self.kiiro_net.set_parameters()
         util.trigger_callback('network_updated')
 
     @log_exceptions
@@ -1056,8 +1056,8 @@ class Network(Logger, NetworkRetryManager[ServerAddr]):
             if substring in server_msg:
                 msg = tx_verify_error_messages[substring]
                 return msg if msg else substring
-        # Dashd v0.13.1 specific errors
-        dashd_specific_error_messages = {
+        # Kiirod v0.13.1 specific errors
+        kiirod_specific_error_messages = {
             r"bad-qc-not-allowed",
             r"bad-qc-missing",
             r"bad-qc-block",
@@ -1157,7 +1157,7 @@ class Network(Logger, NetworkRetryManager[ServerAddr]):
             r"bad-version",
         }
         found_substrings = []
-        for substring in dashd_specific_error_messages:
+        for substring in kiirod_specific_error_messages:
             if substring in server_msg:
                 found_substrings.append(substring)
         if found_substrings:
@@ -1376,7 +1376,7 @@ class Network(Logger, NetworkRetryManager[ServerAddr]):
         """
         self._jobs = jobs or []
         asyncio.run_coroutine_threadsafe(self._start(), self.asyncio_loop)
-        # self.dash_net.start()
+        # self.kiiro_net.start()
         self.mn_list.start()
 
     @log_exceptions
@@ -1384,7 +1384,7 @@ class Network(Logger, NetworkRetryManager[ServerAddr]):
         self.logger.info("stopping network")
         if full_shutdown:
             self.mn_list.stop()
-            await self.dash_net.stop()
+            await self.kiiro_net.stop()
         # timeout: if full_shutdown, it is up to the caller to time us out,
         #          otherwise if e.g. restarting due to proxy changes, we time out fast
         async with (nullcontext() if full_shutdown else ignore_after(1)):

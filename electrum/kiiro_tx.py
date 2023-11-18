@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Dash-Electrum - lightweight Dash client
-# Copyright (C) 2018 Dash Developers
+# Kiiro-Electrum - lightweight Kiiro client
+# Copyright (C) 2018 Kiiro Developers
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -100,8 +100,8 @@ def read_uint16_nbo(vds):
     return i
 
 
-class DashTxError(Exception):
-    """Thrown when there's a problem with Dash serialize/deserialize"""
+class KiiroTxError(Exception):
+    """Thrown when there's a problem with Kiiro serialize/deserialize"""
 
 
 class ProTxService (namedtuple('ProTxService', 'ip port')):
@@ -119,7 +119,7 @@ class ProTxService (namedtuple('ProTxService', 'ip port')):
         return {'ip': self.ip, 'port': self.port}
 
 
-# https://dash-docs.github.io/en/developer-reference#outpoint
+# https://kiiro-docs.github.io/en/developer-reference#outpoint
 class TxOutPoint(namedtuple('TxOutPoint', 'hash index')):
     '''Class representing tx input outpoint'''
     def __str__(self):
@@ -206,7 +206,7 @@ class CTxOut(namedtuple('CTxOut', 'value scriptPubKey')):
         )
 
 
-# https://github.com/dashpay/dips/blob/master/dip-0002-special-transactions.md
+# https://github.com/kiiropay/dips/blob/master/dip-0002-special-transactions.md
 class ProTxBase:
     '''Base Class representing DIP2 Special Transactions'''
     def __init__(self, *args, **kwargs):
@@ -262,7 +262,7 @@ class ProTxBase:
         '''Update spec tx signature when password is accessible'''
 
 
-class DashProRegTx(ProTxBase):
+class KiiroProRegTx(ProTxBase):
     '''Class representing DIP3 ProRegTx'''
 
     __slots__ = ('version type mode collateralOutpoint '
@@ -271,7 +271,7 @@ class DashProRegTx(ProTxBase):
                  'inputsHash payloadSig').split()
 
     def __init__(self, *args, **kwargs):
-        super(DashProRegTx, self).__init__(*args, **kwargs)
+        super(KiiroProRegTx, self).__init__(*args, **kwargs)
         self.payload_sig_msg_part = ''
 
     def __str__(self):
@@ -347,7 +347,7 @@ class DashProRegTx(ProTxBase):
             ipAddress = str(ipAddress.ipv4_mapped)
         else:
             ipAddress = str(ipAddress)
-        return DashProRegTx(version, mn_type, mode, collateralOutpoint,
+        return KiiroProRegTx(version, mn_type, mode, collateralOutpoint,
                             ipAddress, port, KeyIdOwner, PubKeyOperator,
                             KeyIdVoting, operatorReward, scriptPayout,
                             inputsHash, payloadSig)
@@ -375,7 +375,7 @@ class DashProRegTx(ProTxBase):
 
         outpoints_str = [str(o) for o in outpoints]
         if str(self.collateralOutpoint) in outpoints_str:
-            raise DashTxError('Collateral outpoint used as ProRegTx input.\n'
+            raise KiiroTxError('Collateral outpoint used as ProRegTx input.\n'
                               'Please select coins to spend at Coins tab '
                               'of freeze collateral at Addresses tab.')
 
@@ -399,7 +399,7 @@ class DashProRegTx(ProTxBase):
                                                   password)
 
 
-class DashProUpServTx(ProTxBase):
+class KiiroProUpServTx(ProTxBase):
     '''Class representing DIP3 ProUpServTx'''
 
     __slots__ = ('version proTxHash ipAddress port '
@@ -453,7 +453,7 @@ class DashProUpServTx(ProTxBase):
             ipAddress = str(ipAddress.ipv4_mapped)
         else:
             ipAddress = str(ipAddress)
-        return DashProUpServTx(version, proTxHash, ipAddress, port,
+        return KiiroProUpServTx(version, proTxHash, ipAddress, port,
                                scriptOperatorPayout, inputsHash, payloadSig)
 
     def update_with_tx_data(self, tx):
@@ -478,7 +478,7 @@ class DashProUpServTx(ProTxBase):
         self.payloadSig = bls_sig.serialize()
 
 
-class DashProUpRegTx(ProTxBase):
+class KiiroProUpRegTx(ProTxBase):
     '''Class representing DIP3 ProUpRegTx'''
 
     __slots__ = ('version proTxHash mode PubKeyOperator '
@@ -522,7 +522,7 @@ class DashProUpRegTx(ProTxBase):
 
     @classmethod
     def read_vds(cls, vds):
-        return DashProUpRegTx(
+        return KiiroProUpRegTx(
             vds.read_uint16(),                          # version
             vds.read_bytes(32),                         # proTxHash
             vds.read_uint16(),                          # mode
@@ -554,7 +554,7 @@ class DashProUpRegTx(ProTxBase):
 
 
 class RevokeReasons(IntEnum):
-    '''DashProUpRevTx revocation reasons'''
+    '''KiiroProUpRevTx revocation reasons'''
     NOT_SPECIFIED = 0
     TERMINATION_OF_SERVICE = 1
     COMPROMISED_KEYS = 2
@@ -574,7 +574,7 @@ def revoke_reason_str(reason):
         return 'Unknown reason'
 
 
-class DashProUpRevTx(ProTxBase):
+class KiiroProUpRevTx(ProTxBase):
     '''Class representing DIP3 ProUpRevTx'''
 
     __slots__ = ('version proTxHash reason '
@@ -606,7 +606,7 @@ class DashProUpRevTx(ProTxBase):
 
     @classmethod
     def read_vds(cls, vds):
-        return DashProUpRevTx(
+        return KiiroProUpRevTx(
             vds.read_uint16(),                          # version
             vds.read_bytes(32),                         # proTxHash
             vds.read_uint16(),                          # reason
@@ -636,7 +636,7 @@ class DashProUpRevTx(ProTxBase):
         self.payloadSig = bls_sig.serialize()
 
 
-class DashCbTx(ProTxBase):
+class KiiroCbTx(ProTxBase):
     '''Class representing DIP4 coinbase special tx'''
 
     __slots__ = ('version height merkleRootMNList merkleRootQuorums').split()
@@ -674,7 +674,7 @@ class DashCbTx(ProTxBase):
         merkleRootQuorums = b''
         if version > 1:
             merkleRootQuorums = vds.read_bytes(32)
-        return DashCbTx(version, height, merkleRootMNList, merkleRootQuorums)
+        return KiiroCbTx(version, height, merkleRootMNList, merkleRootQuorums)
 
 class KiiroLelantusJsplitTx(ProTxBase):
     __slots__ = ('lelantusData').split()
@@ -696,7 +696,7 @@ class KiiroLelantusJsplitTx(ProTxBase):
         vds.read_cursor = len(vds.input)
         return tx
 
-class DashSubTxRegister(ProTxBase):
+class KiiroSubTxRegister(ProTxBase):
     '''Class representing DIP5 SubTxRegister'''
 
     __slots__ = ('version userName pubKey payloadSig').split()
@@ -723,7 +723,7 @@ class DashSubTxRegister(ProTxBase):
 
     @classmethod
     def read_vds(cls, vds):
-        return DashSubTxRegister(
+        return KiiroSubTxRegister(
             vds.read_uint16(),                          # version
             read_varbytes(vds).decode('utf-8'),         # userName
             vds.read_bytes(48),                         # pubKey
@@ -731,7 +731,7 @@ class DashSubTxRegister(ProTxBase):
         )
 
 
-class DashSubTxTopup(ProTxBase):
+class KiiroSubTxTopup(ProTxBase):
     '''Class representing DIP5 SubTxTopup'''
 
     __slots__ = ('version regTxHash').split()
@@ -752,13 +752,13 @@ class DashSubTxTopup(ProTxBase):
 
     @classmethod
     def read_vds(cls, vds):
-        return DashSubTxTopup(
+        return KiiroSubTxTopup(
             vds.read_uint16(),                          # version
             vds.read_bytes(32)                          # regTxHash
         )
 
 
-class DashSubTxResetKey(ProTxBase):
+class KiiroSubTxResetKey(ProTxBase):
     '''Class representing DIP5 SubTxResetKey'''
 
     __slots__ = ('version regTxHash hashPrevSubTx '
@@ -796,7 +796,7 @@ class DashSubTxResetKey(ProTxBase):
 
     @classmethod
     def read_vds(cls, vds):
-        return DashSubTxResetKey(
+        return KiiroSubTxResetKey(
             vds.read_uint16(),                          # version
             vds.read_bytes(32),                         # regTxHash
             vds.read_bytes(32),                         # hashPrevSubTx
@@ -806,7 +806,7 @@ class DashSubTxResetKey(ProTxBase):
         )
 
 
-class DashSubTxCloseAccount(ProTxBase):
+class KiiroSubTxCloseAccount(ProTxBase):
     '''Class representing DIP5 SubTxCloseAccount'''
 
     __slots__ = ('version regTxHash hashPrevSubTx '
@@ -839,7 +839,7 @@ class DashSubTxCloseAccount(ProTxBase):
 
     @classmethod
     def read_vds(cls, vds):
-        return DashSubTxCloseAccount(
+        return KiiroSubTxCloseAccount(
             vds.read_uint16(),                          # version
             vds.read_bytes(32),                         # regTxHash
             vds.read_bytes(32),                         # hashPrevSubTx
@@ -859,11 +859,11 @@ LELANTUS_JSPLIT = 8
 
 
 SPEC_TX_HANDLERS = {
-    SPEC_PRO_REG_TX: DashProRegTx,
-    SPEC_PRO_UP_SERV_TX: DashProUpServTx,
-    SPEC_PRO_UP_REG_TX: DashProUpRegTx,
-    SPEC_PRO_UP_REV_TX: DashProUpRevTx,
-    SPEC_CB_TX: DashCbTx,
+    SPEC_PRO_REG_TX: KiiroProRegTx,
+    SPEC_PRO_UP_SERV_TX: KiiroProUpServTx,
+    SPEC_PRO_UP_REG_TX: KiiroProUpRegTx,
+    SPEC_PRO_UP_REV_TX: KiiroProUpRevTx,
+    SPEC_CB_TX: KiiroCbTx,
     LELANTUS_JSPLIT: KiiroLelantusJsplitTx,
 }
 
@@ -905,7 +905,7 @@ def read_extra_payload(vds, tx_type):
             extra_payload = read_method(vds)
             assert isinstance(extra_payload, spec_tx_class)
         else:
-            raise DashTxError(f'Unkonwn tx type {tx_type}')
+            raise KiiroTxError(f'Unkonwn tx type {tx_type}')
         assert vds.read_cursor == end
     else:
         extra_payload = b''
@@ -915,7 +915,7 @@ def read_extra_payload(vds, tx_type):
 def serialize_extra_payload(tx):
     tx_type = tx.tx_type
     if not tx_type:
-        raise DashTxError('No special tx type set to serialize')
+        raise KiiroTxError('No special tx type set to serialize')
 
     extra = tx.extra_payload
     spec_tx_class = SPEC_TX_HANDLERS.get(tx_type)
@@ -924,6 +924,6 @@ def serialize_extra_payload(tx):
         return extra
 
     if not isinstance(extra, spec_tx_class):
-        raise DashTxError('Dash tx_type not conform with extra'
+        raise KiiroTxError('Kiiro tx_type not conform with extra'
                           ' payload class: %s, %s' % (tx_type, extra))
     return extra.serialize()

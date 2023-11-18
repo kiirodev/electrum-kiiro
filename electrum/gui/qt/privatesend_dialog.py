@@ -13,7 +13,7 @@ from PyQt5.QtWidgets import (QPlainTextEdit, QCheckBox, QSpinBox, QVBoxLayout,
                              QButtonGroup, QGroupBox, QLineEdit, QComboBox)
 
 from electrum import mnemonic
-from electrum.dash_ps_util import (filter_log_line, PSLogSubCat, PSStates,
+from electrum.kiiro_ps_util import (filter_log_line, PSLogSubCat, PSStates,
                                         PS_DENOMS_VALS)
 from electrum.i18n import _
 from electrum.util import InvalidPassword
@@ -110,10 +110,10 @@ class FilteredPlainTextEdit(QPlainTextEdit):
         QApplication.clipboard().setText('\n'.join(result_lines))
 
 
-class DashSpinBox(QSpinBox):
+class KiiroSpinBox(QSpinBox):
 
     def paintEvent(self, event):
-        super(DashSpinBox, self).paintEvent(event)
+        super(KiiroSpinBox, self).paintEvent(event)
         styled_element = QStyle.SE_LineEditContents
         panel = QStyleOptionSpinBox()
         self.initStyleOption(panel)
@@ -121,7 +121,7 @@ class DashSpinBox(QSpinBox):
         textRect.adjust(2, 0, -30, 0)
         painter = QPainter(self)
         painter.setPen(QColor(ColorScheme.DEFAULT.as_color()))
-        painter.drawText(textRect, Qt.AlignRight | Qt.AlignVCenter, 'Dash')
+        painter.drawText(textRect, Qt.AlignRight | Qt.AlignVCenter, 'Kiiro')
 
 
 def find_ps_dialog(mwin):
@@ -232,7 +232,7 @@ class PSDialogUnsupportedPS(QDialog, MessageBoxMixin):
     def __init__(self, mwin):
         QDialog.__init__(self, parent=None)
         self.setMinimumSize(900, 480)
-        self.setWindowIcon(read_QIcon('electrum-dash.png'))
+        self.setWindowIcon(read_QIcon('electrum-kiiro.png'))
         self.mwin = mwin
         self.wallet = mwin.wallet
         self.psman = psman = mwin.wallet.psman
@@ -265,7 +265,7 @@ class PSDialog(QDialog, MessageBoxMixin):
     def __init__(self, mwin):
         QDialog.__init__(self, parent=None)
         self.setMinimumSize(900, 480)
-        self.setWindowIcon(read_QIcon('electrum-dash.png'))
+        self.setWindowIcon(read_QIcon('electrum-kiiro.png'))
         self.mwin = mwin
         self.format_amount = mwin.format_amount
         self.wallet = mwin.wallet
@@ -398,7 +398,7 @@ class PSDialog(QDialog, MessageBoxMixin):
         keep_amount_text = psman.keep_amount_data()
         keep_amount_help = psman.keep_amount_data(full_txt=True)
         keep_amount_label = HelpLabel(keep_amount_text + ':', keep_amount_help)
-        self.keep_amount_sb = DashSpinBox()
+        self.keep_amount_sb = KiiroSpinBox()
         self.keep_amount_sb.setMinimum(psman.min_keep_amount)
         self.keep_amount_sb.setMaximum(psman.max_keep_amount)
         self.keep_amount_sb.setValue(psman.keep_amount)
@@ -681,7 +681,7 @@ class PSDialog(QDialog, MessageBoxMixin):
         keep_amount_help = psman.keep_amount_data(full_txt=True)
         keep_amount_txt = psman.keep_amount_data()
         keep_amount_label = HelpLabel(keep_amount_txt + ':', keep_amount_help)
-        self.keep_amount_sb2 = DashSpinBox()
+        self.keep_amount_sb2 = KiiroSpinBox()
         self.keep_amount_sb2.setMinimum(psman.min_keep_amount)
         self.keep_amount_sb2.setMaximum(psman.max_keep_amount)
         self.keep_amount_sb2.setValue(psman.keep_amount)
@@ -721,7 +721,7 @@ class PSDialog(QDialog, MessageBoxMixin):
             self.update_keep_amount()
 
         for i, d in enumerate(PS_DENOMS_VALS[::-1]):
-            d_le = QLineEdit(self.format_amount(d) + ' DASH')
+            d_le = QLineEdit(self.format_amount(d) + ' KIIRO')
             d_le.setAlignment(Qt.AlignRight)
             d_le.setEnabled(False)
             g.addWidget(d_le, 4 + i, 2)
@@ -942,8 +942,8 @@ class PSDialog(QDialog, MessageBoxMixin):
             self.keep_amount_sb.setEnabled(True)
             self.keep_amount_sb2.setEnabled(True)
         if psman.calc_denoms_method == psman.CalcDenomsMethod.ABS:
-            self.keep_amount_lb.setText(f'{psman.keep_amount} DASH')
-            self.keep_amount_lb2.setText(f'{psman.keep_amount} DASH')
+            self.keep_amount_lb.setText(f'{psman.keep_amount} KIIRO')
+            self.keep_amount_lb2.setText(f'{psman.keep_amount} KIIRO')
             self.keep_amount_sb.hide()
             self.keep_amount_sb2.hide()
             self.keep_amount_lb.show()
@@ -1368,5 +1368,5 @@ class PSKeystoreWizard(QWizard):
         self.setOption(QWizard.NoCancelButtonOnLastPage, True)
         self.setPixmap(QWizard.LogoPixmap, logo)
         self.setWindowTitle(_('PrivateSend Keystore Wizard'))
-        self.setWindowIcon(read_QIcon('electrum-dash.png'))
+        self.setWindowIcon(read_QIcon('electrum-kiiro.png'))
         self.setMinimumSize(800, 450)

@@ -34,7 +34,6 @@ hiddenimports += ['PyQt5.QtPrintSupport']  # needed by Revealer
 
 datas = [
     (electrum + PYPKG + '/*.json', PYPKG),
-    (electrum + PYPKG + '/lnwire/*.csv', PYPKG + '/lnwire'),
     (electrum + PYPKG + '/wordlist/english.txt', PYPKG + '/wordlist'),
     (electrum + PYPKG + '/wordlist/slip39.txt', PYPKG + '/wordlist'),
     (electrum + PYPKG + '/locale', PYPKG + '/locale'),
@@ -52,6 +51,7 @@ datas += collect_data_files('bitbox02')
 binaries = [(electrum + "electrum/libusb-1.0.dylib", ".")]
 binaries += [(electrum + "electrum/libsecp256k1.2.dylib", ".")]
 binaries += [(electrum + "electrum/libzbar.0.dylib", ".")]
+binaries += [(electrum + "electrum/libx11hash.0.dylib", ".")]
 
 # Workaround for "Retro Look":
 binaries += [b for b in collect_dynamic_libs('PyQt5') if 'macstyle' in b[0]]

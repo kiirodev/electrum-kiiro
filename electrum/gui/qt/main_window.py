@@ -55,7 +55,7 @@ from electrum import (keystore, ecc, constants, util, bitcoin, commands,
                            paymentrequest)
 from electrum.base_crash_reporter import BaseCrashReporter
 from electrum.bitcoin import COIN, is_address
-from electrum.dash_tx import DashTxError, ProTxBase, SPEC_TX_NAMES
+from electrum.kiiro_tx import KiiroTxError, ProTxBase, SPEC_TX_NAMES
 from electrum.plugin import run_hook, BasePlugin
 from electrum.i18n import _
 from electrum.util import (format_time,
@@ -305,7 +305,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if self.config.get("is_maximized"):
             self.showMaximized()
 
-        self.setWindowIcon(read_QIcon("electrum-dash.png"))
+        self.setWindowIcon(read_QIcon("electrum-kiiro.png"))
         self.init_menubar()
 
         wrtabs = weakref.proxy(tabs)
@@ -327,7 +327,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         # network callbacks
         if self.network:
             self.network_signal.connect(self.on_network_qt)
-            self.gui_object.dash_net_sobj.main.connect(self.on_dash_net_qt)
+            self.gui_object.kiiro_net_sobj.main.connect(self.on_kiiro_net_qt)
             interests = ['wallet_updated', 'network_updated', 'blockchain_updated',
                          'new_transaction', 'status',
                          'banner', 'verified', 'fee', 'fee_histogram', 'on_quotes',
@@ -343,11 +343,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             # set initial message
             self.console.showMessage(self.network.banner)
 
-            # dash net callbacks
-            util.register_callback(self.on_dash_net,
-                                   ['dash-net-updated',
-                                    'dash-peers-updated'])
-            self.update_dash_net_status_btn()
+            # kiiro net callbacks
+            util.register_callback(self.on_kiiro_net,
+                                   ['kiiro-net-updated',
+                                    'kiiro-peers-updated'])
+            self.update_kiiro_net_status_btn()
 
         # update fee slider in case we missed the callback
         #self.fee_slider.update()
@@ -499,11 +499,11 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         # Handle in GUI thread
         self.network_signal.emit(event, args)
 
-    def on_dash_net(self, event, *args):
-        self.gui_object.dash_net_sobj.main.emit(event, args)
+    def on_kiiro_net(self, event, *args):
+        self.gui_object.kiiro_net_sobj.main.emit(event, args)
 
-    def on_dash_net_qt(self, event, args=None):
-        self.update_dash_net_status_btn()
+    def on_kiiro_net_qt(self, event, args=None):
+        self.update_kiiro_net_status_btn()
 
     def on_ps_callback(self, event, *args):
         self.ps_signal.emit(event, args)
@@ -562,10 +562,10 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                         self.tabs.setCurrentIndex(utxo_idx)
                     self.utxo_list.toggle_ps(2)  # PS Other coins
 
-    def update_dash_net_status_btn(self):
+    def update_kiiro_net_status_btn(self):
         net = self.network
-        icon = (net.dash_net.status_icon() if net else 'dash_net_off.png')
-        self.dash_net_button.setIcon(read_QIcon(icon))
+        icon = (net.kiiro_net.status_icon() if net else 'kiiro_net_off.png')
+        self.kiiro_net_button.setIcon(read_QIcon(icon))
 
     def update_ps_status_btn(self, is_mixing, is_waiting):
         if not is_mixing:
@@ -1261,7 +1261,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             _('This information is seen by the recipient if you send them a signed payment request.'),
             '\n\n',
             _('For on-chain requests, the address gets reserved until expiration. After that, it might get reused.'), ' ',
-            _('The Dash address never expires and will always be part of this electrum wallet.'), ' ',
+            _('The Kiiro address never expires and will always be part of this electrum wallet.'), ' ',
             _('You can reuse a Kiiro address any number of times but it is not good for your privacy.'),
         ])
         grid.addWidget(HelpLabel(_('Expires after') + ' (?)', msg), 2, 0)
@@ -1636,7 +1636,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                 # Check if we had enough funds excluding fees,
                 # if so, still provide opportunity to set lower fees.
                 tx = make_tx(0)
-        except (MultipleSpendMaxTxOutputs, DashTxError) as e:
+        except (MultipleSpendMaxTxOutputs, KiiroTxError) as e:
             self.max_button.setChecked(False)
             self.show_error(str(e))
             return
@@ -2014,7 +2014,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
             if tx.tx_type:
                 try:
                     tx.extra_payload.check_after_tx_prepared(tx)
-                except DashTxError as e:
+                except KiiroTxError as e:
                     self.show_message(str(e))
                     return
             return tx
@@ -2068,7 +2068,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         if tx.tx_type:
             try:
                 tx.extra_payload.check_after_tx_prepared(tx)
-            except DashTxError as e:
+            except KiiroTxError as e:
                 self.show_message(str(e))
                 return
         if is_send:
@@ -2604,14 +2604,14 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                 lambda: self.gui_object.show_network_dialog())
             sb.addPermanentWidget(self.status_button)
 
-            def on_dash_net_status_button():
+            def on_kiiro_net_status_button():
                 self.gui_object.show_kiiro_net_dialog()
-            self.dash_net_button = StatusBarButton(read_QIcon('dash_net_0.png'),
-                                                   _('Dash Network'),
-                                                   on_dash_net_status_button)
-            self.dash_net_button.hide()
-            self.update_dash_net_status_btn()
-            sb.addPermanentWidget(self.dash_net_button)
+            self.kiiro_net_button = StatusBarButton(read_QIcon('kiiro_net_0.png'),
+                                                   _('Kiiro Network'),
+                                                   on_kiiro_net_status_button)
+            self.kiiro_net_button.hide()
+            self.update_kiiro_net_status_btn()
+            sb.addPermanentWidget(self.kiiro_net_button)
     
             self.ps_button = StatusBarButton(read_QIcon('privatesend.png'),
                                              '',
@@ -3084,7 +3084,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
                 return
             if not data:
                 return
-            # if the user scanned a dash URI
+            # if the user scanned a kiiro URI
             data_l = data.lower()
             if (data_l.startswith(KIIRO_BIP21_URI_SCHEME + ':')
                     or data_l.startswith(PAY_BIP21_URI_SCHEME + ':')):
@@ -3479,7 +3479,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, Logger):
         util.unregister_callback(self.on_ps_callback)
         if self.network:
             self.wallet.protx_manager.clean_up()
-            util.unregister_callback(self.on_dash_net)
+            util.unregister_callback(self.on_kiiro_net)
         if self.wallet.thread:
             self.wallet.thread.stop()
             self.wallet.thread = None

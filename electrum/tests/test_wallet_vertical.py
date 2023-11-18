@@ -316,7 +316,7 @@ class TestWalletSending(TestCaseForTestnet):
         ks = keystore.from_seed(seed_words, '', False)
         return WalletIntegrityHelper.create_standard_wallet(ks, gap_limit=gap_limit, config=config)
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_sending_between_p2sh_2of3_and_uncompressed_p2pkh(self, mock_save_db):
         wallet1a = WalletIntegrityHelper.create_multisig_wallet(
@@ -395,7 +395,7 @@ class TestWalletSending(TestCaseForTestnet):
         self.assertEqual((0, funding_output_value - 370000 - 5000 + 100000, 0), wallet1a.get_balance())
         self.assertEqual((0, 370000 - 5000 - 100000, 0), wallet2.get_balance())
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     def test_sweep_p2pk(self):
 
         class NetworkMock:
@@ -424,7 +424,7 @@ class TestWalletSending(TestCaseForTestnet):
         self.assertEqual('7f827fc5256c274fd1094eb7e020c8ded0baf820356f61aa4f14a9093b0ea0ee', tx_copy.txid())
         self.assertEqual('7f827fc5256c274fd1094eb7e020c8ded0baf820356f61aa4f14a9093b0ea0ee', tx_copy.wtxid())
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_standard_wallet_cannot_sign_multisig_input_even_if_cosigner(self, mock_save_db):
         """Just because our keystore recognizes the pubkeys in a txin, if the prevout does not belong to the wallet,
@@ -475,7 +475,7 @@ class TestWalletSending(TestCaseForTestnet):
         self.assertFalse(any([wallet_frost.is_mine(txin.address) for txin in tx.inputs()]))
         self.assertFalse(any([wallet_frost.is_mine(txout.address) for txout in tx.outputs()]))
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_wallet_history_chain_of_unsigned_transactions(self, mock_save_db):
         wallet = self.create_standard_wallet_from_seed('cross end slow expose giraffe fuel track awake turtle capital ranch pulp',
@@ -661,7 +661,7 @@ class TestWalletOfflineSigning(TestCaseForTestnet):
         super().setUp()
         self.config = SimpleConfig({'electrum_path': self.electrum_path})
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_sending_offline_old_electrum_seed_online_mpk(self, mock_save_db):
         wallet_offline = WalletIntegrityHelper.create_standard_wallet(
@@ -705,7 +705,7 @@ class TestWalletOfflineSigning(TestCaseForTestnet):
         self.assertEqual('06032230d0bf6a277bc4f8c39e3311a712e0e614626d0dea7cc9f592abfae5d8', tx.txid())
         self.assertEqual('06032230d0bf6a277bc4f8c39e3311a712e0e614626d0dea7cc9f592abfae5d8', tx.wtxid())
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_sending_offline_xprv_online_xpub_p2pkh(self, mock_save_db):
         wallet_offline = WalletIntegrityHelper.create_standard_wallet(
@@ -759,7 +759,7 @@ class TestWalletOfflineSigning(TestCaseForTestnet):
                 self.assertEqual('d9c21696eca80321933e7444ca928aaf25eeda81aaa2f4e5c085d4d0a9cf7aa7', tx.txid())
                 self.assertEqual('d9c21696eca80321933e7444ca928aaf25eeda81aaa2f4e5c085d4d0a9cf7aa7', tx.wtxid())
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_offline_signing_beyond_gap_limit(self, mock_save_db):
         wallet_offline = WalletIntegrityHelper.create_standard_wallet(
@@ -805,7 +805,7 @@ class TestWalletOfflineSigning(TestCaseForTestnet):
         self.assertEqual('ee76c0c6da87f0eb5ab4d1ae05d3942512dcd3c4c42518f9d3619e74400cfc1f', tx.txid())
         self.assertEqual('484e350beaa722a744bb3e2aa38de005baa8526d86536d6143e5814355acf775', tx.wtxid())
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_signing_where_offline_ks_does_not_have_keyorigin_but_psbt_contains_it(self, mock_save_db):
         # keystore has intermediate xprv without root fp; tx contains root fp and full path.
@@ -827,7 +827,7 @@ class TestWalletOfflineSigning(TestCaseForTestnet):
         self.assertEqual('020000000001017b748828553b1127b86674e71ad0cd4a2e5e8baeab8792a3c3263f7ea0ba86500000000000fdffffff01ad16010000000000160014d74b54300bc0d4b6e8f506fe540b47ce0da38b4a0247304402203098741bf4d4f956e96f2706a517a1c0a63f67a242a50d155fbc56ad0bbac8b102207e535391c03bdab641f3205762311c1e6648b3459681e53d68fa44e63604a7f6012102d137f257a96cbc58c7e60f2085cd65a311e242459e23d1efbed77dd8f372513808f21c00',
                          str(tx))
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_sending_offline_wif_online_addr_p2pkh(self, mock_save_db):  # compressed pubkey
         wallet_offline = WalletIntegrityHelper.create_imported_wallet(privkeys=True, config=self.config)
@@ -865,7 +865,7 @@ class TestWalletOfflineSigning(TestCaseForTestnet):
         self.assertEqual('e56da664631b8c666c6df38ec80c954c4ac3c4f56f040faf0070e4681e937fc4', tx.txid())
         self.assertEqual('e56da664631b8c666c6df38ec80c954c4ac3c4f56f040faf0070e4681e937fc4', tx.wtxid())
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_sending_offline_xprv_online_addr_p2pkh(self, mock_save_db):  # compressed pubkey
         wallet_offline = WalletIntegrityHelper.create_standard_wallet(
@@ -907,7 +907,7 @@ class TestWalletOfflineSigning(TestCaseForTestnet):
         self.assertEqual('e56da664631b8c666c6df38ec80c954c4ac3c4f56f040faf0070e4681e937fc4', tx.txid())
         self.assertEqual('e56da664631b8c666c6df38ec80c954c4ac3c4f56f040faf0070e4681e937fc4', tx.wtxid())
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_sending_offline_hd_multisig_online_addr_p2sh(self, mock_save_db):
         # 2-of-3 legacy p2sh multisig
@@ -1010,7 +1010,7 @@ class TestWalletHistory_SimpleRandomOrder(TestCaseForTestnet):
         w.create_new_address(for_change=True)
         return w
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_restoring_old_wallet_txorder1(self, mock_save_db):
         w = self.create_old_wallet()
@@ -1019,7 +1019,7 @@ class TestWalletHistory_SimpleRandomOrder(TestCaseForTestnet):
             w.receive_tx_callback(tx.txid(), tx, TX_HEIGHT_UNCONFIRMED)
         self.assertEqual(27633300, sum(w.get_balance()))
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_restoring_old_wallet_txorder2(self, mock_save_db):
         w = self.create_old_wallet()
@@ -1028,7 +1028,7 @@ class TestWalletHistory_SimpleRandomOrder(TestCaseForTestnet):
             w.receive_tx_callback(tx.txid(), tx, TX_HEIGHT_UNCONFIRMED)
         self.assertEqual(27633300, sum(w.get_balance()))
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_restoring_old_wallet_txorder3(self, mock_save_db):
         w = self.create_old_wallet()
@@ -1061,7 +1061,7 @@ class TestWalletHistory_EvilGapLimit(TestCaseForTestnet):
         w = WalletIntegrityHelper.create_standard_wallet(ks, gap_limit=20, config=self.config)
         return w
 
-    @unittest.skip("skip until replace with dash wallet")
+    @unittest.skip("skip until replace with kiiro wallet")
     @mock.patch.object(wallet.Abstract_Wallet, 'save_db')
     def test_restoring_wallet_txorder1(self, mock_save_db):
         w = self.create_wallet()

@@ -14,9 +14,9 @@ from PyQt5.QtWidgets import (QLineEdit, QComboBox, QListWidget, QDoubleSpinBox,
                              QFileDialog, QWizard)
 
 from electrum import constants
-from electrum import dash_tx
+from electrum import kiiro_tx
 from electrum.bitcoin import COIN, is_b58_address, b58_address_to_hash160
-from electrum.dash_tx import TxOutPoint, service_to_ip_port
+from electrum.kiiro_tx import TxOutPoint, service_to_ip_port
 from electrum.protx import ProTxMN, ProTxService, ProRegTxExc
 from electrum.util import bfh, bh2u, FILE_OWNER_MODE
 from electrum.i18n import _
@@ -335,8 +335,8 @@ class ImportLegacyWizardPage(QWizardPage):
                 value = 0
 
         if prevout_hash:
-            val_dash = '%s Kiiro' % (value/COIN) if value else ''
-            self.collateral_val.setText(val_dash)
+            val_kiiro = '%s Kiiro' % (value/COIN) if value else ''
+            self.collateral_val.setText(val_kiiro)
             self.collateral_value = value
             self.collateral.setText('%s:%s' % (prevout_hash, prevout_n))
             self.collateral_addr.setText(address)
@@ -1042,21 +1042,21 @@ class SaveDip3WizardPage(QWizardPage):
                 if start_id == parent.OPERATION_TYPE_PAGE:
                     pro_tx = manager.prepare_pro_reg_tx(alias)
                     tx_descr = 'ProRegTx'
-                    tx_type = dash_tx.SPEC_PRO_REG_TX
+                    tx_type = kiiro_tx.SPEC_PRO_REG_TX
                 elif start_id == parent.UPD_SRV_PAGE:
                     pro_tx = manager.prepare_pro_up_srv_tx(self.new_mn)
                     tx_descr = 'ProUpServTx'
-                    tx_type = dash_tx.SPEC_PRO_UP_SERV_TX
+                    tx_type = kiiro_tx.SPEC_PRO_UP_SERV_TX
                 elif start_id == parent.UPD_REG_PAGE:
                     pro_tx = manager.prepare_pro_up_reg_tx(self.new_mn)
                     tx_descr = 'ProUpRegTx'
-                    tx_type = dash_tx.SPEC_PRO_UP_REG_TX
+                    tx_type = kiiro_tx.SPEC_PRO_UP_REG_TX
             except ProRegTxExc as e:
                 gui.show_error(e)
                 return True
             gui.do_clear()
             mn = self.new_mn
-            if mn.collateral.is_null and tx_type == dash_tx.SPEC_PRO_REG_TX:
+            if mn.collateral.is_null and tx_type == kiiro_tx.SPEC_PRO_REG_TX:
                 gui.amount_e.setText('1000')
             mn_addrs = [mn.owner_addr, mn.voting_addr, mn.payout_address]
             for addr in manager.wallet.get_unused_addresses():
@@ -1726,7 +1726,7 @@ class Dip3MasternodeWizard(QWizard):
         self.setWizardStyle(QWizard.ClassicStyle)
         self.setPixmap(QWizard.LogoPixmap, logo)
         self.setWindowTitle(title)
-        self.setWindowIcon(read_QIcon('electrum-dash.png'))
+        self.setWindowIcon(read_QIcon('electrum-kiiro.png'))
         self.setMinimumSize(1000, 450)
 
     def closeEvent(self, event):
@@ -1922,7 +1922,7 @@ class Dip3FileWizard(QWizard):
         self.setWizardStyle(QWizard.ClassicStyle)
         self.setPixmap(QWizard.LogoPixmap, logo)
         self.setWindowTitle(title)
-        self.setWindowIcon(read_QIcon('electrum-dash.png'))
+        self.setWindowIcon(read_QIcon('electrum-kiiro.png'))
         self.setMinimumSize(1000, 450)
 
     def closeEvent(self, event):

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Dash-Electrum - lightweight Dash client
-# Copyright (C) 2019 Dash Developers
+# Kiiro-Electrum - lightweight Kiiro client
+# Copyright (C) 2019 Kiiro Developers
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -32,7 +32,7 @@ from struct import pack
 from .crypto import sha256d
 from .bitcoin import hash160_to_p2pkh, b58_address_to_hash160
 from .ecc import msg_magic
-from .dash_tx import (to_compact_size, to_varbytes, serialize_ip, str_ip,
+from .kiiro_tx import (to_compact_size, to_varbytes, serialize_ip, str_ip,
                       service_to_ip_port, TxOutPoint, read_uint16_nbo,
                       CTxIn, CTxOut)
 from .transaction import Transaction, BCDataStream, SerializationError
@@ -40,27 +40,27 @@ from .util import IntEnumWithCheck, bh2u, bfh
 from .i18n import _
 
 
-# https://dash-docs.github.io/en/developer-reference#version
+# https://kiiro-docs.github.io/en/developer-reference#version
 MAX_USER_AGENT_SIZE = 256
-# https://dash-docs.github.io/en/developer-reference#addr
+# https://kiiro-docs.github.io/en/developer-reference#addr
 MAX_ADDRESSES = 1000
-# https://dash-docs.github.io/en/developer-reference#inv
+# https://kiiro-docs.github.io/en/developer-reference#inv
 MAX_INV_ENTRIES = 50000
-# https://dash-docs.github.io/en/developer-reference#filterload
+# https://kiiro-docs.github.io/en/developer-reference#filterload
 FILTERLOAD_MAX_HASH_FUNCS = 50
 FILTERLOAD_MAX_FILTER_BYTES = 36000
-# https://dash-docs.github.io/en/developer-reference#filteradd
+# https://kiiro-docs.github.io/en/developer-reference#filteradd
 FILTERADD_MAX_ELEMENT_BYTES = 520
-# https://github.com/dashpay/dash/blob/
+# https://github.com/kiiropay/kiiro/blob/
 # e9f7142ed01c0d7b53ef8b5f6f3f6375a68ef422/src/privatesend.h#L29
 PRIVATESEND_ENTRY_MAX_SIZE = 9
 
 
-class DashMsgError(Exception):
-    """Thrown when there's a problem with Dash message serialize/deserialize"""
+class KiiroMsgError(Exception):
+    """Thrown when there's a problem with Kiiro message serialize/deserialize"""
 
 
-class DashType(IntEnumWithCheck):
+class KiiroType(IntEnumWithCheck):
     '''Enum representing Inventory object types'''
     MSG_TX = 1
     MSG_BLOCK = 2
@@ -97,7 +97,7 @@ class DashType(IntEnumWithCheck):
 
 
 class SporkID(IntEnumWithCheck):
-    '''Enum representing known Dash spork IDs'''
+    '''Enum representing known Kiiro spork IDs'''
     SPORK_2_INSTANTSEND_ENABLED = 10001
     SPORK_3_INSTANTSEND_BLOCK_FILTERING = 10002
     SPORK_5_INSTANTSEND_MAX_VALUE = 10004
@@ -213,11 +213,11 @@ def ds_msg_str(msg_id):
     return DS_MSG_STR[int(msg_id)]
 
 
-class DashNetIPAddr(namedtuple('DashNetIPAddr', 'time services ip port')):
+class KiiroNetIPAddr(namedtuple('KiiroNetIPAddr', 'time services ip port')):
     '''Class representing addr mesage payload'''
 
     def __str__(self):
-        return ('DashNetIPAddr: time: %s,'
+        return ('KiiroNetIPAddr: time: %s,'
                 ' services: 0x%.16X, ip: %s, port: %s' %
                 (self.time, self.services, str_ip(self.ip), self.port))
 
@@ -241,13 +241,13 @@ class DeletedQuorum(namedtuple('DeletedQuorum', 'llmqType quorumHash')):
         return DeletedQuorum(llmqType, quorumHash)
 
 
-class DashSMLEntry(namedtuple('DashSMLEntry',
+class KiiroSMLEntry(namedtuple('KiiroSMLEntry',
                               'proRegTxHash confirmedHash ipAddress port'
                               ' pubKeyOperator keyIDVoting isValid')):
     '''Class representing Simplified Masternode List entry'''
 
     def __str__(self):
-        return ('DashSMLEntry: proRegTxHash: %s, confirmedHash: %s,'
+        return ('KiiroSMLEntry: proRegTxHash: %s, confirmedHash: %s,'
                 ' ipAddress: %s, port: %s, pubKeyOperator: %s,'
                 ' keyIDVoting: %s, isValid: %s' %
                 (bh2u(self.proRegTxHash[::-1]), bh2u(self.confirmedHash[::-1]),
@@ -272,7 +272,7 @@ class DashSMLEntry(namedtuple('DashSMLEntry',
         pubKeyOperator = bfh(d['pubKeyOperator'])
         keyIDVoting = b58_address_to_hash160(d['votingAddress'])[1]
         isValid = d['isValid']
-        return DashSMLEntry(proRegTxHash, confirmedHash, ipAddress,
+        return KiiroSMLEntry(proRegTxHash, confirmedHash, ipAddress,
                             port, pubKeyOperator, keyIDVoting, isValid)
 
     def serialize(self, as_hex=False):
@@ -312,60 +312,60 @@ class DashSMLEntry(namedtuple('DashSMLEntry',
         isValid = vds.read_uchar()                      # isValid
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashSMLEntry(proRegTxHash, confirmedHash, ipAddress,
+        return KiiroSMLEntry(proRegTxHash, confirmedHash, ipAddress,
                             port, pubKeyOperator, keyIDVoting, isValid)
 
 
-class DashInventory(namedtuple('DashInventory', 'type hash')):
+class KiiroInventory(namedtuple('KiiroInventory', 'type hash')):
     '''Class representing addr mesage payload'''
 
     def __str__(self):
         tv = self.type
-        tn = DashType(tv).name if DashType.has_value(tv) else tv
-        return ('DashInventory: %s %s' % (tn, bh2u(self.hash[::-1])))
+        tn = KiiroType(tv).name if KiiroType.has_value(tv) else tv
+        return ('KiiroInventory: %s %s' % (tn, bh2u(self.hash[::-1])))
 
 
-class DashCmd:
-    '''Class representing Dash network message packed with msg header cmd'''
+class KiiroCmd:
+    '''Class representing Kiiro network message packed with msg header cmd'''
 
     def __init__(self, cmd, payload=None):
         lcmd = cmd.lower()
         vds = BCDataStream()
         vds.clear_and_set_bytes(payload)
         if lcmd == 'version':
-            self.payload = DashVersionMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroVersionMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'ping':
-            self.payload = DashPingMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroPingMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'pong':
-            self.payload = DashPongMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroPongMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'addr':
-            self.payload = DashAddrMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroAddrMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'inv':
-            self.payload = DashInvMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroInvMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'spork':
-            self.payload = DashSporkMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroSporkMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'islock':
-            self.payload = DashISLockMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroISLockMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'mnlistdiff':
-            self.payload = DashMNListDiffMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroMNListDiffMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'qfcommit':
-            self.payload = DashQFCommitMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroQFCommitMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'senddsq':
-            self.payload = DashSendDsqMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroSendDsqMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'dsa':
-            self.payload = DashDsaMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroDsaMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'dsc':
-            self.payload = DashDscMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroDscMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'dsf':
-            self.payload = DashDsfMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroDsfMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'dsi':
-            self.payload = DashDsiMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroDsiMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'dsq':
-            self.payload = DashDsqMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroDsqMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'dss':
-            self.payload = DashDssMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroDssMsg.read_vds(vds, alone_data=True)
         elif lcmd == 'dssu':
-            self.payload = DashDssuMsg.read_vds(vds, alone_data=True)
+            self.payload = KiiroDssuMsg.read_vds(vds, alone_data=True)
         else:
             self.payload = payload
         self.cmd = lcmd
@@ -379,8 +379,8 @@ class DashCmd:
             return f'{self.cmd}: {self.payload}'
 
 
-class DashMsgBase:
-    '''Base Class representing Dash Network messages'''
+class KiiroMsgBase:
+    '''Base Class representing Kiiro Network messages'''
     def __init__(self, *args, **kwargs):
         if args and not kwargs:
             argsl = list(args)
@@ -399,7 +399,7 @@ class DashMsgBase:
         return cls.read_vds(vds)
 
 
-class DashVersionMsg(DashMsgBase):
+class KiiroVersionMsg(KiiroMsgBase):
     '''Class representing version message'''
 
     fields = ('version services timestamp '
@@ -409,10 +409,10 @@ class DashVersionMsg(DashMsgBase):
               'relay mnauth_challenge fMasternode').split()
 
     def __init__(self, *args, **kwargs):
-        super(DashVersionMsg, self).__init__(*args, **kwargs)
+        super(KiiroVersionMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        res = ('DashVersionMsg: version: %s,'
+        res = ('KiiroVersionMsg: version: %s,'
                ' services: 0x%.16X, timestamp: %s,'
                ' recv_services: 0x%.16X, recv_ip: %s, recv_port: %s,'
                ' trans_services: 0x%.16X, trans_ip: %s, trans_port: %s,'
@@ -478,7 +478,7 @@ class DashVersionMsg(DashMsgBase):
         nonce = vds.read_uint64()                       # nonce
         user_agent_csize = vds.read_compact_size()
         if user_agent_csize > MAX_USER_AGENT_SIZE:
-            raise DashMsgError('version msg: user_agent too long')
+            raise KiiroMsgError('version msg: user_agent too long')
         user_agent = vds.read_bytes(user_agent_csize)   # user_agent
         start_height = vds.read_int32()                 # start_height
 
@@ -496,23 +496,23 @@ class DashVersionMsg(DashMsgBase):
             fMasternode = vds.read_uchar()              # fMasternode
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashVersionMsg(version, services, timestamp,
+        return KiiroVersionMsg(version, services, timestamp,
                               recv_services, recv_ip, recv_port,
                               trans_services, trans_ip, trans_port,
                               nonce, user_agent, start_height,
                               relay, mnauth_challenge, fMasternode)
 
 
-class DashSendDsqMsg(DashMsgBase):
+class KiiroSendDsqMsg(KiiroMsgBase):
     '''Class representing ping message'''
 
     fields = 'fSendDSQueue'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashSendDsqMsg, self).__init__(*args, **kwargs)
+        super(KiiroSendDsqMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return 'DashSendDsqMsg: fSendDSQueue: %s' % self.fSendDSQueue
+        return 'KiiroSendDsqMsg: fSendDSQueue: %s' % self.fSendDSQueue
 
     def serialize(self):
         return pack('B', self.fSendDSQueue)             # fSendDSQueue
@@ -520,19 +520,19 @@ class DashSendDsqMsg(DashMsgBase):
     @classmethod
     def read_vds(cls, vds, alone_data=False):
         fSendDSQueue = vds.read_uchar()                 # fSendDSQueue
-        return DashSendDsqMsg(fSendDSQueue)
+        return KiiroSendDsqMsg(fSendDSQueue)
 
 
-class DashPingMsg(DashMsgBase):
+class KiiroPingMsg(KiiroMsgBase):
     '''Class representing ping message'''
 
     fields = 'nonce'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashPingMsg, self).__init__(*args, **kwargs)
+        super(KiiroPingMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return 'DashPingMsg: nonce: %s' % self.nonce
+        return 'KiiroPingMsg: nonce: %s' % self.nonce
 
     def serialize(self):
         return pack('<Q', self.nonce)                   # nonce
@@ -542,40 +542,40 @@ class DashPingMsg(DashMsgBase):
         nonce = vds.read_uint64()                       # nonce
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashPingMsg(nonce)
+        return KiiroPingMsg(nonce)
 
 
-class DashPongMsg(DashPingMsg):
+class KiiroPongMsg(KiiroPingMsg):
     '''Class representing pong message'''
 
     def __str__(self):
-        return 'DashPongMsg: nonce: %s' % self.nonce
+        return 'KiiroPongMsg: nonce: %s' % self.nonce
 
     @classmethod
     def read_vds(cls, vds, alone_data=False):
         nonce = vds.read_uint64()                       # nonce
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashPongMsg(nonce)
+        return KiiroPongMsg(nonce)
 
 
-class DashAddrMsg(DashMsgBase):
+class KiiroAddrMsg(KiiroMsgBase):
     '''Class representing addr message'''
 
     fields = 'addresses'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashAddrMsg, self).__init__(*args, **kwargs)
+        super(KiiroAddrMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
         addr_str = [str(a) for a in self.addresses]
-        return ('DashAddrMsg: addresses(%s): %s' %
+        return ('KiiroAddrMsg: addresses(%s): %s' %
                 (len(self.addresses), addr_str))
 
     def serialize(self):
         addr_cnt = len(self.addresses)
         if addr_cnt > MAX_ADDRESSES:
-            raise DashMsgError('addr msg: too many addresses to send')
+            raise KiiroMsgError('addr msg: too many addresses to send')
         res = to_compact_size(addr_cnt)
         for a in self.addresses:
             ip_addr = serialize_ip(a)
@@ -589,30 +589,30 @@ class DashAddrMsg(DashMsgBase):
     def read_vds(cls, vds, alone_data=False):
         addr_cnt = vds.read_compact_size()
         if addr_cnt > MAX_ADDRESSES:
-            raise DashMsgError('addr msg: too many addresses')
+            raise KiiroMsgError('addr msg: too many addresses')
         addresses = []
         for addr_i in range(addr_cnt):
             time = vds.read_uint32()                    # time
             services = vds.read_uint64()                # services
             ip_addr = ip_address(vds.read_bytes(16))    # ip
             port = read_uint16_nbo(vds)                 # port
-            addresses.append(DashNetIPAddr(time, services, ip_addr, port))
+            addresses.append(KiiroNetIPAddr(time, services, ip_addr, port))
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashAddrMsg(addresses)
+        return KiiroAddrMsg(addresses)
 
 
-class DashInvMsg(DashMsgBase):
+class KiiroInvMsg(KiiroMsgBase):
     '''Class representing inv message'''
 
     fields = 'inventory'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashInvMsg, self).__init__(*args, **kwargs)
+        super(KiiroInvMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
         inv_str = [str(i) for i in self.inventory]
-        return ('DashInvMsg: inventory(%s): %s' %
+        return ('KiiroInvMsg: inventory(%s): %s' %
                 (len(self.inventory), inv_str))
 
     def serialize(self):
@@ -621,7 +621,7 @@ class DashInvMsg(DashMsgBase):
     def _serialize(self, msg):
         inv_cnt = len(self.inventory)
         if inv_cnt > MAX_INV_ENTRIES:
-            raise DashMsgError(f'{msg} msg: too long inventory to send')
+            raise KiiroMsgError(f'{msg} msg: too long inventory to send')
         res = to_compact_size(inv_cnt)
         for i in self.inventory:
             res += pack('<I', i.type)                   # type
@@ -631,29 +631,29 @@ class DashInvMsg(DashMsgBase):
 
     @classmethod
     def read_vds(cls, vds, alone_data=False):
-        return DashInvMsg(cls._read_vds(vds, 'inv', alone_data))
+        return KiiroInvMsg(cls._read_vds(vds, 'inv', alone_data))
 
     @classmethod
     def _read_vds(cls, vds, msg, alone_data=False):
         inv_cnt = vds.read_compact_size()
         if inv_cnt > MAX_INV_ENTRIES:
-            raise DashMsgError(f'{msg} msg: too long inventory')
+            raise KiiroMsgError(f'{msg} msg: too long inventory')
         inventory = []
         for inv_i in range(inv_cnt):
             inv_type = vds.read_uint32()                # type
             inv_hash = vds.read_bytes(32)               # hash
-            inventory.append(DashInventory(inv_type, inv_hash))
+            inventory.append(KiiroInventory(inv_type, inv_hash))
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
         return inventory
 
 
-class DashGetDataMsg(DashInvMsg):
+class KiiroGetDataMsg(KiiroInvMsg):
     '''Class representing getdata message'''
 
     def __str__(self):
         inv_str = [str(i) for i in self.inventory]
-        return ('DashGetDataMsg: inventory(%s): %s' %
+        return ('KiiroGetDataMsg: inventory(%s): %s' %
                 (len(self.inventory), inv_str))
 
     def serialize(self):
@@ -661,21 +661,21 @@ class DashGetDataMsg(DashInvMsg):
 
     @classmethod
     def read_vds(cls, vds, alone_data=False):
-        return DashGetDataMsg(cls._read_vds(vds, 'getdata', alone_data))
+        return KiiroGetDataMsg(cls._read_vds(vds, 'getdata', alone_data))
 
 
-class DashSporkMsg(DashMsgBase):
+class KiiroSporkMsg(KiiroMsgBase):
     '''Class representing islock message'''
 
     fields = 'nSporkID nValue nTimeSigned vchSig'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashSporkMsg, self).__init__(*args, **kwargs)
+        super(KiiroSporkMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
         is_known_id = SporkID.has_value(self.nSporkID)
         spork_id = SporkID(self.nSporkID) if is_known_id else self.nSporkID
-        return ('DashSporkMsg: nSporkID: %s, nValue: %s,'
+        return ('KiiroSporkMsg: nSporkID: %s, nValue: %s,'
                 ' nTimeSigned: %s, vchSig: %s' %
                 (spork_id, self.nValue, self.nTimeSigned, bh2u(self.vchSig)))
 
@@ -686,11 +686,11 @@ class DashSporkMsg(DashMsgBase):
         nTimeSigned = vds.read_int64()                  # nTimeSigned
         vchSig_len = vds.read_compact_size()
         if vchSig_len != 65:
-            raise DashMsgError(f'spork msg: wrong vchSig length')
+            raise KiiroMsgError(f'spork msg: wrong vchSig length')
         vchSig = vds.read_bytes(65)                     # vchSig
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashSporkMsg(nSporkID, nValue, nTimeSigned, vchSig)
+        return KiiroSporkMsg(nSporkID, nValue, nTimeSigned, vchSig)
 
     def msg_hash(self, new_sigs=True):
         if new_sigs:
@@ -702,17 +702,17 @@ class DashSporkMsg(DashMsgBase):
         return sha256d(msg_magic(msg_str.encode()))
 
 
-class DashISLockMsg(DashMsgBase):
+class KiiroISLockMsg(KiiroMsgBase):
     '''Class representing islock message'''
 
     fields = 'inputs txid sig'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashISLockMsg, self).__init__(*args, **kwargs)
+        super(KiiroISLockMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
         inputs_str = [str(i) for i in self.inputs]
-        return ('DashISLockMsg: inputs: %s, txid: %s, sig: %s' %
+        return ('KiiroISLockMsg: inputs: %s, txid: %s, sig: %s' %
                 (inputs_str, bh2u(self.txid[::-1]), self.sig))
 
     @classmethod
@@ -727,7 +727,7 @@ class DashISLockMsg(DashMsgBase):
         sig = vds.read_bytes(96)                        # sig
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashISLockMsg(inputs, txid, sig)
+        return KiiroISLockMsg(inputs, txid, sig)
 
     def calc_request_id(self):
         prehash = b'\x06islock' + to_compact_size(len(self.inputs))
@@ -744,16 +744,16 @@ class DashISLockMsg(DashMsgBase):
         )
 
 
-class DashCLSigMsg(DashMsgBase):
+class KiiroCLSigMsg(KiiroMsgBase):
     '''Class representing clsig message'''
 
     fields = 'nHeight blockHash sig'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashCLSigMsg, self).__init__(*args, **kwargs)
+        super(KiiroCLSigMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return ('DashCLSigMsg: nHeight: %s, blockHash: %s, sig: %s' %
+        return ('KiiroCLSigMsg: nHeight: %s, blockHash: %s, sig: %s' %
                 (self.nHeight, bh2u(self.blockHash[::-1]), self.sig))
 
     @classmethod
@@ -763,7 +763,7 @@ class DashCLSigMsg(DashMsgBase):
         sig = vds.read_bytes(96)                        # sig
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashCLSigMsg(nHeight, blockHash, sig)
+        return KiiroCLSigMsg(nHeight, blockHash, sig)
 
     def calc_request_id(self):
         return sha256d(b'\x05clsig' + pack('<I', self.nHeight))
@@ -777,16 +777,16 @@ class DashCLSigMsg(DashMsgBase):
         )
 
 
-class DashGetMNListDMsg(DashMsgBase):
+class KiiroGetMNListDMsg(KiiroMsgBase):
     '''Class representing getmnlistd message'''
 
     fields = 'baseBlockHash blockHash'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashGetMNListDMsg, self).__init__(*args, **kwargs)
+        super(KiiroGetMNListDMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return ('DashGetMNListDMsg: baseBlockHash: %s, blockHash: %s' %
+        return ('KiiroGetMNListDMsg: baseBlockHash: %s, blockHash: %s' %
                 (bh2u(self.baseBlockHash[::-1]), bh2u(self.blockHash[::-1])))
 
     def serialize(self):
@@ -803,10 +803,10 @@ class DashGetMNListDMsg(DashMsgBase):
         blockHash = vds.read_bytes(32)                  # blockHash
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashGetMNListDMsg(baseBlockHash, blockHash)
+        return KiiroGetMNListDMsg(baseBlockHash, blockHash)
 
 
-class DashMNListDiffMsg(DashMsgBase):
+class KiiroMNListDiffMsg(KiiroMsgBase):
     '''Class representing mnlistdiff message'''
 
     fields = ('baseBlockHash blockHash totalTransactions merkleHashes'
@@ -814,7 +814,7 @@ class DashMNListDiffMsg(DashMsgBase):
               ' newQuorums').split()
 
     def __init__(self, *args, **kwargs):
-        super(DashMNListDiffMsg, self).__init__(*args, **kwargs)
+        super(KiiroMNListDiffMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
         mh_cnt = len(self.merkleHashes)
@@ -828,7 +828,7 @@ class DashMNListDiffMsg(DashMsgBase):
         deletedQuorums = [str(dq) for dq in self.deletedQuorums]
         nq_cnt = len(self.newQuorums)
         newQuorums = [str(qfc) for qfc in self.newQuorums]
-        return ('DashMNListDiffMsg: baseBlockHash: %s, blockHash: %s,'
+        return ('KiiroMNListDiffMsg: baseBlockHash: %s, blockHash: %s,'
                 ' totalTransactions: %s, merkleHashes(%s): %s,'
                 ' merkleFlags: %s, cbTx: %s,'
                 ' deletedMNs(%s): %s, mnList(%s): %s,'
@@ -865,7 +865,7 @@ class DashMNListDiffMsg(DashMsgBase):
         mnl_cnt = vds.read_compact_size()               # mnList cnt
         mnList = []                                     # mnList
         for mn_i in range(mnl_cnt):
-            mnList.append(DashSMLEntry.read_vds(vds))
+            mnList.append(KiiroSMLEntry.read_vds(vds))
 
         deletedQuorums = []                             # deletedQuorums
         newQuorums = []                                 # newQuorums
@@ -875,15 +875,15 @@ class DashMNListDiffMsg(DashMsgBase):
                 deletedQuorums.append(DeletedQuorum.read_vds(vds))
             nq_cnt = vds.read_compact_size()            # newQuorums cnt
             for nq_i in range(nq_cnt):
-                newQuorums.append(DashQFCommitMsg.read_vds(vds))
+                newQuorums.append(KiiroQFCommitMsg.read_vds(vds))
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashMNListDiffMsg(baseBlockHash, blockHash, totalTransactions,
+        return KiiroMNListDiffMsg(baseBlockHash, blockHash, totalTransactions,
                                  merkleHashes, merkleFlags, cbTx, deletedMNs,
                                  mnList, deletedQuorums, newQuorums)
 
 
-class DashQFCommitMsg(DashMsgBase):
+class KiiroQFCommitMsg(KiiroMsgBase):
     '''Class representing qfcommit message'''
 
     fields = ('version llmqType quorumHash signersSize signers'
@@ -891,13 +891,13 @@ class DashQFCommitMsg(DashMsgBase):
               ' quorumSig sig').split()
 
     def __init__(self, *args, **kwargs):
-        super(DashQFCommitMsg, self).__init__(*args, **kwargs)
+        super(KiiroQFCommitMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
         llmqType = (LLMQType(self.llmqType)
                     if LLMQType.has_value(self.llmqType)
                     else self.llmqType)
-        return ('DashQFCommitMsg: version: %s, llmqType: %s(%s),'
+        return ('KiiroQFCommitMsg: version: %s, llmqType: %s(%s),'
                 ' quorumHash: %s, signers(%s): %s,'
                 ' validMembers(%s): %s, quorumPublicKey: %s,'
                 ' quorumVvecHash: %s, quorumSig: %s, sig: %s' %
@@ -951,22 +951,22 @@ class DashQFCommitMsg(DashMsgBase):
         sig = vds.read_bytes(96)                        # sig
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashQFCommitMsg(version, llmqType, quorumHash,
+        return KiiroQFCommitMsg(version, llmqType, quorumHash,
                                signers_size, signers, valid_m_size,
                                validMembers, quorumPublicKey,
                                quorumVvecHash, quorumSig, sig)
 
 
-class DashFliterLoadMsg(DashMsgBase):
+class KiiroFliterLoadMsg(KiiroMsgBase):
     '''Class representing filterload message'''
 
     fields = 'filter nHashFuncs nTweak nFlags'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashFliterLoadMsg, self).__init__(*args, **kwargs)
+        super(KiiroFliterLoadMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return ('DashFliterLoadMsg: filter: %s, nHashFuncs: %s,'
+        return ('KiiroFliterLoadMsg: filter: %s, nHashFuncs: %s,'
                 ' nTweak: %s, nFlags: 0x%.2X' %
                 (bh2u(self.filter), self.nHashFuncs, self.nTweak, self.nFlags))
 
@@ -984,28 +984,28 @@ class DashFliterLoadMsg(DashMsgBase):
     def read_vds(cls, vds, alone_data=False):
         filter_bcnt = vds.read_compact_size()
         if filter_bcnt > FILTERLOAD_MAX_FILTER_BYTES:
-            raise DashMsgError(f'filterload msg: too long filter filed')
+            raise KiiroMsgError(f'filterload msg: too long filter filed')
         filter_bytes = vds.read_bytes(filter_bcnt)      # filter
         nHashFuncs = vds.read_uint32()                  # nHashFuncs
         if nHashFuncs > FILTERLOAD_MAX_HASH_FUNCS:
-            raise DashMsgError(f'filterload msg: too high value of nHashFuncs')
+            raise KiiroMsgError(f'filterload msg: too high value of nHashFuncs')
         nTweak = vds.read_uint32()                      # nTweak
         nFlags = vds.read_uchar()                       # nFlags
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashFliterLoadMsg(filter_bytes, nHashFuncs, nTweak, nFlags)
+        return KiiroFliterLoadMsg(filter_bytes, nHashFuncs, nTweak, nFlags)
 
 
-class DashFilterAddMsg(DashMsgBase):
+class KiiroFilterAddMsg(KiiroMsgBase):
     '''Class representing filteradd message'''
 
     fields = 'element'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashFilterAddMsg, self).__init__(*args, **kwargs)
+        super(KiiroFilterAddMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return ('DashFilterAddMsg: element: %s' % self.element)
+        return ('KiiroFilterAddMsg: element: %s' % self.element)
 
     def serialize(self):
         assert len(self.element) <= FILTERADD_MAX_ELEMENT_BYTES
@@ -1015,23 +1015,23 @@ class DashFilterAddMsg(DashMsgBase):
     def read_vds(cls, vds, alone_data=False):
         element_bcnt = vds.read_compact_size()
         if element_bcnt > FILTERADD_MAX_ELEMENT_BYTES:
-            raise DashMsgError(f'filteradd msg: too long element field')
+            raise KiiroMsgError(f'filteradd msg: too long element field')
         element_bytes = vds.read_bytes(element_bcnt)    # element
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashFilterAddMsg(element_bytes)
+        return KiiroFilterAddMsg(element_bytes)
 
 
-class DashDsaMsg(DashMsgBase):
+class KiiroDsaMsg(KiiroMsgBase):
     '''Class representing dsa message'''
 
     fields = 'nDenom txCollateral'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashDsaMsg, self).__init__(*args, **kwargs)
+        super(KiiroDsaMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return ('DashDsaMsg: nDenom: %s, txCollateral: %s' %
+        return ('KiiroDsaMsg: nDenom: %s, txCollateral: %s' %
                 (self.nDenom, self.txCollateral))
 
     @classmethod
@@ -1040,7 +1040,7 @@ class DashDsaMsg(DashMsgBase):
         txCollateral = Transaction.read_vds(vds)        # txCollateral
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashDsaMsg(nDenom, str(txCollateral))
+        return KiiroDsaMsg(nDenom, str(txCollateral))
 
     def serialize(self):
         return (
@@ -1049,13 +1049,13 @@ class DashDsaMsg(DashMsgBase):
         )
 
 
-class DashDssuMsg(DashMsgBase):
+class KiiroDssuMsg(KiiroMsgBase):
     '''Class representing dssu message'''
 
     fields = 'sessionID state entriesCount statusUpdate messageID'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashDssuMsg, self).__init__(*args, **kwargs)
+        super(KiiroDssuMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
         state = (DSPoolState(self.state).name
@@ -1067,7 +1067,7 @@ class DashDssuMsg(DashMsgBase):
         messageID = (DSMessageIDs(self.messageID).name
                      if DSMessageIDs.has_value(self.messageID)
                      else self.messageID)
-        return ('DashDssuMsg: sessionID: %s, state: %s,'
+        return ('KiiroDssuMsg: sessionID: %s, state: %s,'
                 ' entriesCount: %s, statusUpdate: %s,'
                 ' messageID: %s' %
                 (self.sessionID, state,
@@ -1082,7 +1082,7 @@ class DashDssuMsg(DashMsgBase):
         messageID = vds.read_int32()                    # messageID
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashDssuMsg(sessionID, state, entriesCount,
+        return KiiroDssuMsg(sessionID, state, entriesCount,
                            statusUpdate, messageID)
 
     def serialize(self):
@@ -1095,16 +1095,16 @@ class DashDssuMsg(DashMsgBase):
         )
 
 
-class DashDstxMsg(DashMsgBase):
+class KiiroDstxMsg(KiiroMsgBase):
     '''Class representing dstx message'''
 
     fields = 'tx masternodeOutPoint vchSig sigTime'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashDstxMsg, self).__init__(*args, **kwargs)
+        super(KiiroDstxMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return ('DashDstxMsg: masternodeOutPoint: %s, sigTime: %s' %
+        return ('KiiroDstxMsg: masternodeOutPoint: %s, sigTime: %s' %
                 (self.masternodeOutPoint, self.sigTime))
 
     @classmethod
@@ -1113,12 +1113,12 @@ class DashDstxMsg(DashMsgBase):
         masternodeOutPoint = TxOutPoint.read_vds(vds)   # masternodeOutPoint
         vchSig_len = vds.read_compact_size()
         if vchSig_len != 96:
-            raise DashMsgError(f'dsq msg: wrong vchSig length')
+            raise KiiroMsgError(f'dsq msg: wrong vchSig length')
         vchSig = vds.read_bytes(96)                     # vchSig
         sigTime = vds.read_int64()                      # sigTime
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashDstxMsg(tx, masternodeOutPoint, vchSig, sigTime)
+        return KiiroDstxMsg(tx, masternodeOutPoint, vchSig, sigTime)
 
     def msg_hash(self):
         return sha256d(bfh(self.tx.serialize()) +
@@ -1126,16 +1126,16 @@ class DashDstxMsg(DashMsgBase):
                        pack('<q', self.sigTime))
 
 
-class DashDsqMsg(DashMsgBase):
+class KiiroDsqMsg(KiiroMsgBase):
     '''Class representing dsq message'''
 
     fields = 'nDenom masternodeOutPoint nTime fReady vchSig'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashDsqMsg, self).__init__(*args, **kwargs)
+        super(KiiroDsqMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return ('DashDsqMsg: nDenom: %s, masternodeOutPoint: %s,'
+        return ('KiiroDsqMsg: nDenom: %s, masternodeOutPoint: %s,'
                 ' nTime: %s, fReady: %s' %
                 (self.nDenom, self.masternodeOutPoint,
                  self.nTime, self.fReady))
@@ -1148,11 +1148,11 @@ class DashDsqMsg(DashMsgBase):
         fReady = vds.read_uchar()                       # fReady
         vchSig_len = vds.read_compact_size()
         if vchSig_len != 96:
-            raise DashMsgError(f'dsq msg: wrong vchSig length')
+            raise KiiroMsgError(f'dsq msg: wrong vchSig length')
         vchSig = vds.read_bytes(96)                     # vchSig
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashDsqMsg(nDenom, masternodeOutPoint, nTime,
+        return KiiroDsqMsg(nDenom, masternodeOutPoint, nTime,
                           fReady, vchSig)
 
     def serialize(self):
@@ -1172,18 +1172,18 @@ class DashDsqMsg(DashMsgBase):
                        pack('B', self.fReady))
 
 
-class DashDsiMsg(DashMsgBase):
+class KiiroDsiMsg(KiiroMsgBase):
     '''Class representing dsi message'''
 
     fields = 'vecTxDSIn txCollateral vecTxDSOut'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashDsiMsg, self).__init__(*args, **kwargs)
+        super(KiiroDsiMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
         vecTxDSInCnt = len(self.vecTxDSIn)
         vecTxDSOutCnt = len(self.vecTxDSIn)
-        return ('DashDsiMsg: vecTxDSIn (%s): %s, txCollateral: %s,'
+        return ('KiiroDsiMsg: vecTxDSIn (%s): %s, txCollateral: %s,'
                 ' vecTxDSOut (%s): %s' %
                 (vecTxDSInCnt, self.vecTxDSIn, self.txCollateral,
                  vecTxDSOutCnt, self.vecTxDSOut))
@@ -1192,20 +1192,20 @@ class DashDsiMsg(DashMsgBase):
     def read_vds(cls, vds, alone_data=False):
         txin_cnt = vds.read_compact_size()
         if txin_cnt > PRIVATESEND_ENTRY_MAX_SIZE:
-            raise DashMsgError('dsi msg: too many inputs')
+            raise KiiroMsgError('dsi msg: too many inputs')
         vecTxDSIn = []                                  # vecTxDSIn
         for txin_i in range(txin_cnt):
             vecTxDSIn.append(CTxIn.read_vds(vds))
         txCollateral = Transaction.read_vds(vds)        # txCollateral
         txout_cnt = vds.read_compact_size()
         if txout_cnt > PRIVATESEND_ENTRY_MAX_SIZE:
-            raise DashMsgError('dsi msg: too many outputs')
+            raise KiiroMsgError('dsi msg: too many outputs')
         vecTxDSOut = []                                 # vecTxDSOut
         for txout_i in range(txout_cnt):
             vecTxDSOut.append(CTxOut.read_vds(vds))
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashDsiMsg(vecTxDSIn, str(txCollateral), vecTxDSOut)
+        return KiiroDsiMsg(vecTxDSIn, str(txCollateral), vecTxDSOut)
 
     def serialize(self):
         res = to_compact_size(len(self.vecTxDSIn))      # vecTxDSIn
@@ -1218,16 +1218,16 @@ class DashDsiMsg(DashMsgBase):
         return res
 
 
-class DashDsfMsg(DashMsgBase):
+class KiiroDsfMsg(KiiroMsgBase):
     '''Class representing dsf message'''
 
     fields = 'sessionID txFinal'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashDsfMsg, self).__init__(*args, **kwargs)
+        super(KiiroDsfMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
-        return ('DashDsfMsg: sessionID: %s, txFinal: %s,' %
+        return ('KiiroDsfMsg: sessionID: %s, txFinal: %s,' %
                 (self.sessionID, self.txFinal))
 
     @classmethod
@@ -1236,7 +1236,7 @@ class DashDsfMsg(DashMsgBase):
         txFinal = Transaction.read_vds(vds)             # txFinal
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashDsfMsg(sessionID, txFinal)
+        return KiiroDsfMsg(sessionID, txFinal)
 
     def serialize(self):
         return (
@@ -1245,29 +1245,29 @@ class DashDsfMsg(DashMsgBase):
         )
 
 
-class DashDssMsg(DashMsgBase):
+class KiiroDssMsg(KiiroMsgBase):
     '''Class representing dss message'''
 
     fields = 'inputs'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashDssMsg, self).__init__(*args, **kwargs)
+        super(KiiroDssMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
         inputsCnt = len(self.inputs)
-        return ('DashDssMsg: inputs (%s): %s' % (inputsCnt, self.inputs))
+        return ('KiiroDssMsg: inputs (%s): %s' % (inputsCnt, self.inputs))
 
     @classmethod
     def read_vds(cls, vds, alone_data=False):
         txin_cnt = vds.read_compact_size()
         if txin_cnt > PRIVATESEND_ENTRY_MAX_SIZE:
-            raise DashMsgError('dss msg: too many inputs')
+            raise KiiroMsgError('dss msg: too many inputs')
         inputs = []                                     # inputs
         for txin_i in range(txin_cnt):
             inputs.append(CTxIn.read_vds(vds))
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashDssMsg(inputs)
+        return KiiroDssMsg(inputs)
 
     def serialize(self):
         res = to_compact_size(len(self.inputs))         # inputs
@@ -1276,19 +1276,19 @@ class DashDssMsg(DashMsgBase):
         return res
 
 
-class DashDscMsg(DashMsgBase):
+class KiiroDscMsg(KiiroMsgBase):
     '''Class representing dsc message'''
 
     fields = 'sessionID messageID'.split()
 
     def __init__(self, *args, **kwargs):
-        super(DashDscMsg, self).__init__(*args, **kwargs)
+        super(KiiroDscMsg, self).__init__(*args, **kwargs)
 
     def __str__(self):
         messageID = (DSMessageIDs(self.messageID).name
                      if DSMessageIDs.has_value(self.messageID)
                      else self.messageID)
-        return ('DashDscMsg: sessionID: %s, messageID: %s' %
+        return ('KiiroDscMsg: sessionID: %s, messageID: %s' %
                 (self.sessionID, messageID))
 
     @classmethod
@@ -1297,7 +1297,7 @@ class DashDscMsg(DashMsgBase):
         messageID = vds.read_int32()                    # messageID
         if alone_data and vds.can_read_more():
             raise SerializationError(f'{cls}: extra junk at the end')
-        return DashDscMsg(sessionID, messageID)
+        return KiiroDscMsg(sessionID, messageID)
 
     def serialize(self):
         return (

@@ -5,6 +5,7 @@
 build/
 dist/
 *.egg/
+Kiiro_Electrum.egg-info/
 Electrum.egg-info/
 electrum/locale/
 .devlocaltmp/
@@ -41,6 +42,7 @@ contrib/android/android_debug.keystore
 contrib/secp256k1/
 contrib/zbar/
 contrib/libusb/
+contrib/libx11hash/
 contrib/.venv_make_packages/
 
 # shared objects

@@ -576,7 +576,7 @@ class DeviceMgr(ThreadJob):
         # or it is not pairable
         raise DeviceUnpairableError(
             _('Kiiro Electrum cannot pair with your {}.\n\n'
-              'Before you request Dash coins to be sent to addresses in this '
+              'Before you request Kiiro coins to be sent to addresses in this '
               'wallet, ensure you can pair with your device, or that you have '
               'its seed (and passphrase, if any).  Otherwise all coins you '
               'receive will be unspendable.').format(plugin.device))

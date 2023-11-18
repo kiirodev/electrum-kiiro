@@ -340,7 +340,7 @@ def configure_logging(config):
     from . import ELECTRUM_VERSION
     from .constants import GIT_REPO_URL
     _logger.info(f"Kiiro Electrum version: {ELECTRUM_VERSION} - "
-                 f"https://electrum.dash.org - {GIT_REPO_URL}")
+                 f"https://electrum.kiiro.org - {GIT_REPO_URL}")
     _logger.info(f"Python version: {sys.version}. On platform: {describe_os_version()}")
     _logger.info(f"Logging to file: {str(_logfile_path)}")
     _logger.info(f"Log filters: verbosity {repr(verbosity)}, verbosity_shortcuts {repr(verbosity_shortcuts)}")
@@ -367,7 +367,7 @@ def get_git_version() -> Optional[str]:
     dir = os.path.dirname(os.path.realpath(__file__))
     try:
         version = subprocess.check_output(
-            ['git', 'describe', '--always', '--dirty'], cwd=dir)
+            ['git', 'describe', '--always'], cwd=dir)
         version = str(version, "utf8").strip()
     except Exception:
         version = None

@@ -25,7 +25,7 @@ from electrum.transaction import tx_from_any, PartialTxOutput
 from electrum.util import (parse_URI, InvalidBitcoinURI, TxMinedInfo,
                                 profiler, InvoiceError)
 from electrum.logging import Logger
-from electrum.dash_tx import PSTxTypes, SPEC_TX_NAMES
+from electrum.kiiro_tx import PSTxTypes, SPEC_TX_NAMES
 
 from .dialogs.confirm_tx_dialog import ConfirmTxDialog
 from .context_menu import ContextMenu

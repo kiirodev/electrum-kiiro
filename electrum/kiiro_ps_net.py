@@ -6,9 +6,9 @@ from bls_py import bls
 from enum import IntEnum
 
 from .bitcoin import address_to_script
-from .dash_msg import (DSPoolStatusUpdate, DSMessageIDs, ds_msg_str,
-                       ds_pool_state_str, DashDsaMsg, DashDsiMsg, DashDssMsg)
-from .dash_tx import str_ip, CTxIn, CTxOut
+from .kiiro_msg import (DSPoolStatusUpdate, DSMessageIDs, ds_msg_str,
+                       ds_pool_state_str, KiiroDsaMsg, KiiroDsiMsg, KiiroDssMsg)
+from .kiiro_tx import str_ip, CTxIn, CTxOut
 from .util import bfh
 
 
@@ -43,10 +43,10 @@ class PSMixSession:
         self.wfl_lid = wfl_lid
 
         network = psman.wallet.network
-        self.dash_net = network.dash_net
+        self.kiiro_net = network.kiiro_net
         self.mn_list = network.mn_list
 
-        self.dash_peer = None
+        self.kiiro_peer = None
         self.sml_entry = None
 
         if dsq:
@@ -81,21 +81,21 @@ class PSMixSession:
         return f'{str_ip(self.sml_entry.ipAddress)}:{self.sml_entry.port}'
 
     async def run_peer(self):
-        if self.dash_peer:
-            raise Exception('Session already have running DashPeer')
-        self.dash_peer = await self.dash_net.run_mixing_peer(self.peer_str,
+        if self.kiiro_peer:
+            raise Exception('Session already have running KiiroPeer')
+        self.kiiro_peer = await self.kiiro_net.run_mixing_peer(self.peer_str,
                                                              self.sml_entry,
                                                              self)
-        if not self.dash_peer:
+        if not self.kiiro_peer:
             raise Exception(f'Peer {self.peer_str} connection failed')
         self.logger.info(f'Started mixing session for {self.wfl_lid},'
                          f' peer: {self.peer_str}, denom={self.denom_value}'
                          f' (nDenom={self.denom})')
 
     def close_peer(self):
-        if not self.dash_peer:
+        if not self.kiiro_peer:
             return
-        self.dash_peer.close()
+        self.kiiro_peer.close()
         self.logger.info(f'Stopped mixing session for {self.wfl_lid},'
                          f' peer: {self.peer_str}')
 
@@ -131,8 +131,8 @@ class PSMixSession:
 
     async def send_dsa(self, pay_collateral_tx):
         '''Send dsa message to join or create mixing queue'''
-        msg = DashDsaMsg(self.denom, pay_collateral_tx)
-        await self.dash_peer.send_msg('dsa', msg.serialize())
+        msg = KiiroDsaMsg(self.denom, pay_collateral_tx)
+        await self.kiiro_peer.send_msg('dsa', msg.serialize())
         self.logger.debug(f'{self.wfl_lid}: dsa sent')
 
     async def send_dsi(self, inputs, pay_collateral_tx, outputs):
@@ -149,14 +149,14 @@ class PSMixSession:
         for o in outputs:
             scriptPubKey = bfh(address_to_script(o))
             vecTxDSOut.append(CTxOut(self.denom_value, scriptPubKey))
-        msg = DashDsiMsg(vecTxDSIn, pay_collateral_tx, vecTxDSOut)
-        await self.dash_peer.send_msg('dsi', msg.serialize())
+        msg = KiiroDsiMsg(vecTxDSIn, pay_collateral_tx, vecTxDSOut)
+        await self.kiiro_peer.send_msg('dsi', msg.serialize())
         self.logger.debug(f'{self.wfl_lid}: dsi sent')
 
     async def send_dss(self, signed_inputs):
         '''Send dss message containing signed inputs of dsf message final tx'''
-        msg = DashDssMsg(signed_inputs)
-        await self.dash_peer.send_msg('dss', msg.serialize())
+        msg = KiiroDssMsg(signed_inputs)
+        await self.kiiro_peer.send_msg('dss', msg.serialize())
 
     async def read_next_msg(self, denominate_wfl, timeout=None):
         '''Read next msg from msg_queue, process and return (cmd, res) tuple'''
@@ -166,7 +166,7 @@ class PSMixSession:
             res = await asyncio.wait_for(self.msg_queue.get(), timeout)
         except asyncio.TimeoutError:
             raise MixSessionTimeout('Session Timeout, Reset')
-        if not res:  # dash_peer is closed
+        if not res:  # kiiro_peer is closed
             raise MixSessionPeerClosed('peer connection closed')
         elif type(res) == Exception:
             raise res
@@ -227,7 +227,7 @@ class PSMixSession:
         if denom != self.denom:
             raise Exception(f'Wrong denom in dsq msg: {denom},'
                             f' session denom is {self.denom}.')
-        # signature verified in dash_peer on receiving dsq message for session
+        # signature verified in kiiro_peer on receiving dsq message for session
         # signature not verifed for dsq with fReady not set (go to recent dsq)
         if not dsq.fReady:  # additional check
             raise Exception('Get dsq with fReady not set')

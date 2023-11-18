@@ -463,7 +463,7 @@ QComboBox::drop-down {
 }
 
 QComboBox::down-arrow {
-    border-image: url({pkg_dir}/gui/icons/dash_downArrow.png) 0 0 0 0 stretch stretch;
+    border-image: url({pkg_dir}/gui/icons/kiiro_downArrow.png) 0 0 0 0 stretch stretch;
 }
 
 QComboBox QListView {
@@ -525,23 +525,23 @@ QAbstractSpinBox::down-button:disabled {
 }
 
 QAbstractSpinBox::up-arrow {
-    image: url({pkg_dir}/gui/icons/dash_upArrow_small.png);
+    image: url({pkg_dir}/gui/icons/kiiro_upArrow_small.png);
     width: 10px;
     height: 10px;
 }
 
 QAbstractSpinBox::up-arrow:disabled, QAbstractSpinBox::up-arrow:off {
-    image: url({pkg_dir}/gui/icons/dash_upArrow_small_disabled.png);
+    image: url({pkg_dir}/gui/icons/kiiro_upArrow_small_disabled.png);
 }
 
 QAbstractSpinBox::down-arrow {
-    image: url({pkg_dir}/gui/icons/dash_downArrow_small.png);
+    image: url({pkg_dir}/gui/icons/kiiro_downArrow_small.png);
     width: 10px;
     height: 10px;
 }
 
 QAbstractSpinBox::down-arrow:disabled, QAbstractSpinBox::down-arrow:off {
-    image: url({pkg_dir}/gui/icons/dash_downArrow_small_disabled.png);
+    image: url({pkg_dir}/gui/icons/kiiro_downArrow_small_disabled.png);
 }
 
 QSlider::groove:horizontal {
@@ -701,19 +701,19 @@ QScrollBar:up-arrow, QScrollBar:down-arrow, QScrollBar:left-arrow, QScrollBar:ri
 }
 
 QScrollBar:up-arrow {
-    background-image: url({pkg_dir}/gui/icons/dash_upArrow_small.png);
+    background-image: url({pkg_dir}/gui/icons/kiiro_upArrow_small.png);
 }
 
 QScrollBar:down-arrow {
-    background-image: url({pkg_dir}/gui/icons/dash_downArrow_small.png);
+    background-image: url({pkg_dir}/gui/icons/kiiro_downArrow_small.png);
 }
 
 QScrollBar:left-arrow {
-    background-image: url({pkg_dir}/gui/icons/dash_leftArrow_small.png);
+    background-image: url({pkg_dir}/gui/icons/kiiro_leftArrow_small.png);
 }
 
 QScrollBar:right-arrow {
-    background-image: url({pkg_dir}/gui/icons/dash_rightArrow_small.png);
+    background-image: url({pkg_dir}/gui/icons/kiiro_rightArrow_small.png);
 }
 
 
@@ -852,22 +852,22 @@ QTabWidget QTabWidget QTabBar QToolButton:hover {
 
 QDialog QTabWidget QTabBar QToolButton::left-arrow,
 QTabWidget QTabWidget QTabBar QToolButton::left-arrow {
-    image: url({pkg_dir}/gui/icons/dash_leftArrow_small.png);
+    image: url({pkg_dir}/gui/icons/kiiro_leftArrow_small.png);
 }
 
 QDialog QTabWidget QTabBar QToolButton::left-arrow:disabled,
 QTabWidget QTabWidget QTabBar QToolButton::left-arrow:disabled {
-    image: url({pkg_dir}/gui/icons/dash_leftArrow_small_disabled.png);
+    image: url({pkg_dir}/gui/icons/kiiro_leftArrow_small_disabled.png);
 }
 
 QDialog QTabWidget QTabBar QToolButton::right-arrow,
 QTabWidget QTabWidget QTabBar QToolButton::right-arrow {
-    image: url({pkg_dir}/gui/icons/dash_rightArrow_small.png);
+    image: url({pkg_dir}/gui/icons/kiiro_rightArrow_small.png);
 }
 
 QDialog QTabWidget QTabBar QToolButton::right-arrow:disabled,
 QTabWidget QTabWidget QTabBar QToolButton::right-arrow:disabled {
-    image: url({pkg_dir}/gui/icons/dash_rightArrow_small_disabled.png);
+    image: url({pkg_dir}/gui/icons/kiiro_rightArrow_small_disabled.png);
 }
 
 QDialog HelpButton {

@@ -70,7 +70,7 @@ class TestUtil(ElectrumTestCase):
 
     def test_parse_URI_address(self):
         part_URI = 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1'
-        URI = f'dash:{part_URI}'
+        URI = f'kiiro:{part_URI}'
         self._do_test_parse_URI(
             URI, {'address': 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1'})
 
@@ -85,7 +85,7 @@ class TestUtil(ElectrumTestCase):
 
     def test_parse_URI_address_label(self):
         part_URI = 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1?label=electrum%20test'
-        URI = f'dash:{part_URI}'
+        URI = f'kiiro:{part_URI}'
         self._do_test_parse_URI(
             URI, {'address': 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1',
                   'label': 'electrum test'})
@@ -96,7 +96,7 @@ class TestUtil(ElectrumTestCase):
 
     def test_parse_URI_address_message(self):
         part_URI = 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1?message=electrum%20test'
-        URI = f'dash:{part_URI}'
+        URI = f'kiiro:{part_URI}'
         self._do_test_parse_URI(
             URI, {'address': 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1',
                   'message': 'electrum test', 'memo': 'electrum test'})
@@ -107,7 +107,7 @@ class TestUtil(ElectrumTestCase):
 
     def test_parse_URI_address_amount(self):
         part_URI = 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1?amount=0.0003'
-        URI = f'dash:{part_URI}'
+        URI = f'kiiro:{part_URI}'
         self._do_test_parse_URI(
             URI, {'address': 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1',
                   'amount': 30000})
@@ -119,7 +119,7 @@ class TestUtil(ElectrumTestCase):
     def test_parse_URI_address_request_url(self):
         part_URI = ('XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1'
                     '?r=http://domain.tld/page?h%3D2a8628fc2fbe')
-        URI = f'dash:{part_URI}'
+        URI = f'kiiro:{part_URI}'
         self._do_test_parse_URI(
             URI, {'address': 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1',
                   'r': 'http://domain.tld/page?h=2a8628fc2fbe'})
@@ -130,7 +130,7 @@ class TestUtil(ElectrumTestCase):
 
     def test_parse_URI_ignore_args(self):
         part_URI ='XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1?test=test'
-        URI = f'dash:{part_URI}'
+        URI = f'kiiro:{part_URI}'
         self._do_test_parse_URI(
             URI, {'address': 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1',
                   'test': 'test'})
@@ -144,7 +144,7 @@ class TestUtil(ElectrumTestCase):
                     '?amount=0.00004&label=electrum-test'
                     '&message=electrum%20test&test=none'
                     '&r=http://domain.tld/page')
-        URI = f'dash:{part_URI}'
+        URI = f'kiiro:{part_URI}'
         self._do_test_parse_URI(
             URI, {'address': 'XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1',
                   'amount': 4000, 'label': 'electrum-test',
@@ -157,7 +157,7 @@ class TestUtil(ElectrumTestCase):
 
     def test_parse_URI_no_address_request_url(self):
         part_URI = '?r=http://domain.tld/page?h%3D2a8628fc2fbe'
-        URI = f'dash:{part_URI}'
+        URI = f'kiiro:{part_URI}'
         self._do_test_parse_URI(
             URI, {'r': 'http://domain.tld/page?h=2a8628fc2fbe'})
 
@@ -166,13 +166,13 @@ class TestUtil(ElectrumTestCase):
             URI, {'r': 'http://domain.tld/page?h=2a8628fc2fbe'})
 
     def test_parse_URI_invalid_address(self):
-        self.assertRaises(BaseException, parse_URI, 'dash:invalidaddress')
+        self.assertRaises(BaseException, parse_URI, 'kiiro:invalidaddress')
 
     def test_parse_URI_invalid(self):
-        self.assertRaises(BaseException, parse_URI, 'notdash:XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1')
+        self.assertRaises(BaseException, parse_URI, 'notkiiro:XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1')
 
     def test_parse_URI_parameter_polution(self):
-        self.assertRaises(Exception, parse_URI, 'dash:XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1?amount=0.0003&label=test&amount=30.0')
+        self.assertRaises(Exception, parse_URI, 'kiiro:XfTA9qgYmaEHfWhUakwcoTtyquez8SowY1?amount=0.0003&label=test&amount=30.0')
 
     def test_is_hash256_str(self):
         self.assertTrue(is_hash256_str('09a4c03e3bdf83bbe3955f907ee52da4fc12f4813d459bc75228b64ad08617c7'))

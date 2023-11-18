@@ -8,6 +8,7 @@ certifi
 bitstring
 attrs>=20.1.0
 x11_hash==1.4
+python-bls==0.1.9
 jsonpatch
 dnspython>=2.0
 

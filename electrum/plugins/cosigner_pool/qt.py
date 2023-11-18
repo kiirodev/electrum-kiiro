@@ -251,6 +251,6 @@ class Plugin(BasePlugin):
         try:
             tx = tx_from_any(message)
         except SerializationError as e:
-            window.show_error(_("Dash Electrum was unable to deserialize the transaction:") + "\n" + str(e))
+            window.show_error(_("Kiiro Electrum was unable to deserialize the transaction:") + "\n" + str(e))
             return
         show_transaction(tx, parent=window, prompt_if_unsaved=True)

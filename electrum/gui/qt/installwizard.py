@@ -206,7 +206,7 @@ class InstallWizard(QDialog, MessageBoxMixin, BaseWizard):
         btns_hbox.addStretch(1)
         btns_hbox.addLayout(Buttons(self.back_button, self.next_button))
         outer_vbox.addLayout(btns_hbox)
-        self.set_icon('electrum-dash.png')
+        self.set_icon('electrum-kiiro.png')
         self.show()
         self.raise_()
         self.refresh_gui()  # Need for QT on MacOSX.  Lame.

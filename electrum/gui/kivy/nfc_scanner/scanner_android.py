@@ -213,7 +213,7 @@ class ScannerAndroid(NFCBase):
         # Create record
         ndef_record = NdefRecord(
                 NdefRecord.TNF_MIME_MEDIA,
-                'org.dash.electrum.kivy', '', data)
+                'org.kiiro.electrum.kivy', '', data)
         
         # Create message
         ndef_message = NdefMessage([ndef_record])

@@ -52,7 +52,7 @@ from electrum.wallet_db import WalletDB
 from electrum.logging import Logger
 
 from .installwizard import InstallWizard, WalletAlreadyOpenInMemory
-from .kiiro_net_dialog import DashNetDialog
+from .kiiro_net_dialog import KiiroNetDialog
 from .kiiro_qt import TorWarnDialog
 from .util import get_default_language, read_QIcon, ColorScheme, custom_message_box, MessageBoxMixin
 from .main_window import ElectrumWindow
@@ -87,7 +87,7 @@ class QNetworkUpdatedSignalObject(QObject):
     network_updated_signal = pyqtSignal(str, object)
 
 
-class QDashNetSignalsObject(QObject):
+class QKiiroNetSignalsObject(QObject):
     main = pyqtSignal(str, object)
     dlg = pyqtSignal(str, object)
 
@@ -118,7 +118,7 @@ class ElectrumGui(Logger):
         self.efilter = OpenFileEventFilter(self.windows)
         self.app = QElectrumApplication(sys.argv)
         self.app.installEventFilter(self.efilter)
-        self.app.setWindowIcon(read_QIcon("electrum-dash.png"))
+        self.app.setWindowIcon(read_QIcon("electrum-kiiro.png"))
         self._cleaned_up = False
         # timer
         self.timer = QTimer(self.app)
@@ -128,7 +128,7 @@ class ElectrumGui(Logger):
         self.network_dialog = None
         self.kiiro_net_dialog = None
         self.network_updated_signal_obj = QNetworkUpdatedSignalObject()
-        self.dash_net_sobj = QDashNetSignalsObject()
+        self.kiiro_net_sobj = QKiiroNetSignalsObject()
         self._num_wizards_in_progress = 0
         self._num_wizards_lock = threading.Lock()
         self.dark_icon = self.config.get("dark_icon", False)
@@ -222,7 +222,7 @@ class ElectrumGui(Logger):
             self.kiiro_net_dialog.close()
             self.kiiro_net_dialog.clean_up()
             self.kiiro_net_dialog = None
-        self.dash_net_sobj = None
+        self.kiiro_net_sobj = None
         # Shut down the timer cleanly
         self.timer.stop()
         self.timer = None
@@ -267,10 +267,10 @@ class ElectrumGui(Logger):
             self.kiiro_net_dialog.show()
             self.kiiro_net_dialog.raise_()
             return
-        self.kiiro_net_dialog = DashNetDialog(
+        self.kiiro_net_dialog = KiiroNetDialog(
             network=self.daemon.network,
             config=self.config,
-            dash_net_sobj=self.dash_net_sobj)
+            kiiro_net_sobj=self.kiiro_net_sobj)
         self.kiiro_net_dialog.show()
 
     def _create_window_for_wallet(self, wallet):

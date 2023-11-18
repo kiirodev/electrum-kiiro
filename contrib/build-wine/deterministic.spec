@@ -35,7 +35,6 @@ binaries += [('C:/tmp/libzbar-0.dll', '.')]
 
 datas = [
     (home+'electrum/*.json', 'electrum'),
-    (home+'electrum/lnwire/*.csv', 'electrum/lnwire'),
     (home+'electrum/wordlist/english.txt', 'electrum/wordlist'),
     (home+'electrum/wordlist/slip39.txt', 'electrum/wordlist'),
     (home+'electrum/locale', 'electrum/locale'),
@@ -63,7 +62,6 @@ a = Analysis([home+'run_electrum',
               home+'electrum/plugins/trezor/qt.py',
               home+'electrum/plugins/safe_t/client.py',
               home+'electrum/plugins/safe_t/qt.py',
-              home+'electrum/plugins/keepkey/qt.py',
               home+'electrum/plugins/ledger/qt.py',
               #home+'packages/requests/utils.py'
               ],
@@ -120,7 +118,7 @@ exe_standalone = EXE(
     a.scripts,
     a.binaries,
     a.datas,
-    name=os.path_kiiro.join('build\\pyi.win32\\electrum', cmdline_name + ".exe"),
+    name=os.path.join('build\\pyi.win32\\electrum', cmdline_name + ".exe"),
     debug=False,
     strip=None,
     upx=False,

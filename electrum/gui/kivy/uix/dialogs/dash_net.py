@@ -15,11 +15,11 @@ from electrum.gui.kivy.uix.dialogs.question import Question
 
 Builder.load_string('''
 #:import _ electrum.gui.kivy.i18n._
-#:import MIN_PEERS_LIMIT electrum.dash_net.MIN_PEERS_LIMIT
-#:import MAX_PEERS_LIMIT electrum.dash_net.MAX_PEERS_LIMIT
+#:import MIN_PEERS_LIMIT electrum.kiiro_net.MIN_PEERS_LIMIT
+#:import MAX_PEERS_LIMIT electrum.kiiro_net.MAX_PEERS_LIMIT
 
 
-<DashNetStatItem@SettingsItem>
+<KiiroNetStatItem@SettingsItem>
     total: 0
     received: 0
     sent: 0
@@ -30,7 +30,7 @@ Builder.load_string('''
     description: _('Data flow over Kiiro network')
 
 
-<DashNetDataFlowDialog@Popup>
+<KiiroNetDataFlowDialog@Popup>
     title: _('Data flow over Kiiro network')
     data: data
     ScrollView:
@@ -80,7 +80,7 @@ Builder.load_string('''
     halign: 'left'
 
 
-<DashPeerCard@BoxLayout>
+<KiiroPeerCard@BoxLayout>
     peer: ''
     ua: ''
     is_title: False
@@ -283,7 +283,7 @@ Builder.load_string('''
             on_release: root.dismiss()
 
 
-<DashNetDialog@Popup>
+<KiiroNetDialog@Popup>
     title: _('Kiiro Network')
     id: dlg
     BoxLayout:
@@ -297,12 +297,12 @@ Builder.load_string('''
                 padding: '10dp'
                 CardSeparator
                 SettingsItem:
-                    value: ': ON' if root.run_dash_net else ': OFF'
+                    value: ': ON' if root.run_kiiro_net else ': OFF'
                     title: _('Enable Kiiro Network') + self.value
                     description: _('Enable or Disable Kiiro network')
-                    action: root.toggle_dash_net
+                    action: root.toggle_kiiro_net
                 CardSeparator
-                DashNetStatItem
+                KiiroNetStatItem
                     total: root.total
                     received: root.received
                     sent: root.sent
@@ -358,7 +358,7 @@ Builder.load_string('''
 ''')
 
 
-class DashNetDataFlowDialog(Factory.Popup):
+class KiiroNetDataFlowDialog(Factory.Popup):
 
     def __init__(self, dn_dlg):
         Factory.Popup.__init__(self)
@@ -366,13 +366,13 @@ class DashNetDataFlowDialog(Factory.Popup):
         self.update()
 
     def open(self, *args, **kwargs):
-        super(DashNetDataFlowDialog, self).open(*args, **kwargs)
+        super(KiiroNetDataFlowDialog, self).open(*args, **kwargs)
         util.register_callback(self.update_cb,
-                               ['dash-net-activity',
-                                'dash-peers-updated'])
+                               ['kiiro-net-activity',
+                                'kiiro-peers-updated'])
 
     def dismiss(self, *args, **kwargs):
-        super(DashNetDataFlowDialog, self).dismiss(*args, **kwargs)
+        super(KiiroNetDataFlowDialog, self).dismiss(*args, **kwargs)
         util.unregister_callback(self.update_cb)
 
     def update_cb(self, event, *args):
@@ -380,11 +380,11 @@ class DashNetDataFlowDialog(Factory.Popup):
 
     def update(self):
         res = ''
-        peers = self.dn_dlg.dash_net.peers
-        for peer, dash_peer in sorted(list(peers.items())):
-            ping_time = str(dash_peer.ping_time)
-            read_kbytes = str(round(dash_peer.read_bytes/1024, 1))
-            write_kbytes = str(round(dash_peer.write_bytes/1024, 1))
+        peers = self.dn_dlg.kiiro_net.peers
+        for peer, kiiro_peer in sorted(list(peers.items())):
+            ping_time = str(kiiro_peer.ping_time)
+            read_kbytes = str(round(kiiro_peer.read_bytes/1024, 1))
+            write_kbytes = str(round(kiiro_peer.write_bytes/1024, 1))
             res += f'{peer}:\n\n'
             res += f'Ping time (ms): {ping_time}\n'
             res += f'Received KiB: {read_kbytes}\n'
@@ -428,7 +428,7 @@ class ProTxStatsDialog(Factory.Popup):
         self.data.text = res
 
 
-class DashPeerCard(Factory.BoxLayout):
+class KiiroPeerCard(Factory.BoxLayout):
 
     peer = StringProperty()
     us = StringProperty()
@@ -456,11 +456,11 @@ class ConnectedPeersPopup(Factory.Popup):
 
     def update(self, *args, **kwargs):
         self.vbox.clear_widgets()
-        self.vbox.add_widget(DashPeerCard(_('Peer'),
+        self.vbox.add_widget(KiiroPeerCard(_('Peer'),
                                           _('User Agent'),
                                           is_title=True))
         for peer, ua in self.dn_dlg.peers:
-            self.vbox.add_widget(DashPeerCard(peer, ua))
+            self.vbox.add_widget(KiiroPeerCard(peer, ua))
 
     def on_peers(self, *args):
         self.update()
@@ -476,12 +476,12 @@ class MaxPeersPopup(Factory.Popup):
     def __init__(self, dn_dlg):
         Factory.Popup.__init__(self)
         self.dn_dlg = dn_dlg
-        self.slider.value = dn_dlg.dash_net.max_peers
+        self.slider.value = dn_dlg.kiiro_net.max_peers
 
     def dismiss(self, value=None):
         super(MaxPeersPopup, self).dismiss()
         if value is not None:
-            self.dn_dlg.dash_net.max_peers = value
+            self.dn_dlg.kiiro_net.max_peers = value
             self.dn_dlg.max_peers = value
 
 
@@ -493,23 +493,23 @@ class StaticPeersPopup(Factory.Popup):
     def __init__(self, dn_dlg):
         Factory.Popup.__init__(self)
         self.dn_dlg = dn_dlg
-        self.edit.text = dn_dlg.dash_net.dash_peers_as_str()
+        self.edit.text = dn_dlg.kiiro_net.kiiro_peers_as_str()
 
-    def dismiss(self, dash_peers=None):
-        if dash_peers is None:
+    def dismiss(self, kiiro_peers=None):
+        if kiiro_peers is None:
             super(StaticPeersPopup, self).dismiss()
             return
 
         net = self.dn_dlg.net
-        dash_net = net.dash_net
-        res = dash_net.dash_peers_from_str(dash_peers)
+        kiiro_net = net.kiiro_net
+        res = kiiro_net.kiiro_peers_from_str(kiiro_peers)
         if type(res) == str:
             self.err_label.text = f'Error: {res}'
         else:
             super(StaticPeersPopup, self).dismiss()
-            self.dn_dlg.config.set_key('dash_peers', res, True)
-            net.run_from_another_thread(dash_net.set_parameters())
-            self.dn_dlg.static_peers = dash_net.dash_peers_as_str()
+            self.dn_dlg.config.set_key('kiiro_peers', res, True)
+            net.run_from_another_thread(kiiro_net.set_parameters())
+            self.dn_dlg.static_peers = kiiro_net.kiiro_peers_as_str()
 
 
 class SporkCard(Factory.BoxLayout):
@@ -572,8 +572,8 @@ class BanlistCard(Factory.BoxLayout):
     def on_remove(self, peer):
         if not peer:
             return
-        dash_net = self.dn_dlg.dash_net
-        dash_net._remove_banned_peer(peer)
+        kiiro_net = self.dn_dlg.kiiro_net
+        kiiro_net._remove_banned_peer(peer)
 
 
 class BanlistPopup(Factory.Popup):
@@ -610,12 +610,12 @@ class BlsSpeedPopup(Factory.Popup):
 
     def __init__(self, dn_dlg):
         Factory.Popup.__init__(self)
-        self.dash_net = dn_dlg.dash_net
+        self.kiiro_net = dn_dlg.kiiro_net
         self.clock_e = Clock.schedule_once(self.update, 0.5)
 
     def update(self, *args, **kwargs):
         start_t = time.time()
-        res = self.dash_net.test_bls_speed()
+        res = self.kiiro_net.test_bls_speed()
         res_t = time.time() - start_t
         Logger.info(f'Test BLS Speed: res={res}, time={res_t}')
         self.min_t = min(self.min_t, res_t)
@@ -627,12 +627,12 @@ class BlsSpeedPopup(Factory.Popup):
         super(BlsSpeedPopup, self).dismiss(*args, **kwargs)
 
 
-class DashNetDialog(Factory.Popup):
+class KiiroNetDialog(Factory.Popup):
 
     total = NumericProperty()
     received = NumericProperty()
     sent = NumericProperty()
-    run_dash_net = BooleanProperty()
+    run_kiiro_net = BooleanProperty()
     peers = ListProperty()
     max_peers = NumericProperty()
     use_static_peers = BooleanProperty()
@@ -651,7 +651,7 @@ class DashNetDialog(Factory.Popup):
         self.config = self.app.electrum_config
         self.net = app.network
         self.mn_list = self.net.mn_list
-        self.dash_net = self.net.dash_net
+        self.kiiro_net = self.net.kiiro_net
         Factory.Popup.__init__(self)
         layout = self.ids.scrollviewlayout
         layout.bind(minimum_height=layout.setter('height'))
@@ -661,27 +661,27 @@ class DashNetDialog(Factory.Popup):
             Clock.create_trigger(self.on_mn_list_info_updated, 1)
 
     def update(self):
-        self.on_dash_net_activity()
+        self.on_kiiro_net_activity()
         self.on_sporks_activity()
-        self.on_dash_peers_updated()
-        self.on_dash_banlist_updated()
+        self.on_kiiro_peers_updated()
+        self.on_kiiro_banlist_updated()
         self.on_mn_list_diff_updated()
         self.on_network_updated()
-        self.run_dash_net = self.config.get('run_dash_net', True)
-        self.max_peers = self.dash_net.max_peers
-        self.use_static_peers = self.config.get('dash_use_static_peers', False)
-        self.static_peers = self.dash_net.dash_peers_as_str()
+        self.run_kiiro_net = self.config.get('run_kiiro_net', True)
+        self.max_peers = self.kiiro_net.max_peers
+        self.use_static_peers = self.config.get('kiiro_use_static_peers', False)
+        self.static_peers = self.kiiro_net.kiiro_peers_as_str()
 
     def open(self, *args, **kwargs):
-        super(DashNetDialog, self).open(*args, **kwargs)
-        util.register_callback(self.on_dash_net_activity_cb,
-                               ['dash-net-activity'])
+        super(KiiroNetDialog, self).open(*args, **kwargs)
+        util.register_callback(self.on_kiiro_net_activity_cb,
+                               ['kiiro-net-activity'])
         util.register_callback(self.on_sporks_activity_cb,
                                ['sporks-activity'])
-        util.register_callback(self.on_dash_peers_updated_cb,
-                               ['dash-peers-updated'])
-        util.register_callback(self.on_dash_banlist_updated_cb,
-                               ['dash-banlist-updated'])
+        util.register_callback(self.on_kiiro_peers_updated_cb,
+                               ['kiiro-peers-updated'])
+        util.register_callback(self.on_kiiro_banlist_updated_cb,
+                               ['kiiro-banlist-updated'])
         util.register_callback(self.on_mn_list_diff_updated_cb,
                                ['mn-list-diff-updated'])
         util.register_callback(self.on_mn_list_info_updated_cb,
@@ -689,21 +689,21 @@ class DashNetDialog(Factory.Popup):
         util.register_callback(self.on_network_updated_cb, ['network_updated'])
 
     def dismiss(self, *args, **kwargs):
-        super(DashNetDialog, self).dismiss(*args, **kwargs)
-        util.unregister_callback(self.on_dash_net_activity_cb)
+        super(KiiroNetDialog, self).dismiss(*args, **kwargs)
+        util.unregister_callback(self.on_kiiro_net_activity_cb)
         util.unregister_callback(self.on_sporks_activity_cb)
-        util.unregister_callback(self.on_dash_peers_updated_cb)
-        util.unregister_callback(self.on_dash_banlist_updated_cb)
+        util.unregister_callback(self.on_kiiro_peers_updated_cb)
+        util.unregister_callback(self.on_kiiro_banlist_updated_cb)
         util.unregister_callback(self.on_mn_list_diff_updated_cb)
         util.unregister_callback(self.on_mn_list_info_updated_cb)
         util.unregister_callback(self.on_network_updated_cb)
 
-    def on_dash_net_activity_cb(self, event, *args):
-        Clock.schedule_once(lambda dt: self.on_dash_net_activity())
+    def on_kiiro_net_activity_cb(self, event, *args):
+        Clock.schedule_once(lambda dt: self.on_kiiro_net_activity())
 
-    def on_dash_net_activity(self):
-        read_bytes = self.dash_net.read_bytes
-        write_bytes = self.dash_net.write_bytes
+    def on_kiiro_net_activity(self):
+        read_bytes = self.kiiro_net.read_bytes
+        write_bytes = self.kiiro_net.write_bytes
         self.total = round((write_bytes + read_bytes)/1024, 1)
         self.received = round(read_bytes/1024, 1)
         self.sent = round(write_bytes/1024, 1)
@@ -712,7 +712,7 @@ class DashNetDialog(Factory.Popup):
         Clock.schedule_once(lambda dt: self.on_sporks_activity())
 
     def on_sporks_activity(self):
-        sporks_dict = self.dash_net.sporks.as_dict()
+        sporks_dict = self.kiiro_net.sporks.as_dict()
         self.sporks = []
         for k in sorted(list(sporks_dict.keys())):
             name = sporks_dict[k]['name']
@@ -724,20 +724,20 @@ class DashNetDialog(Factory.Popup):
             spork_item = [name, active, value]
             self.sporks.append(spork_item)
 
-    def on_dash_peers_updated_cb(self, event, *args):
-        Clock.schedule_once(lambda dt: self.on_dash_peers_updated())
+    def on_kiiro_peers_updated_cb(self, event, *args):
+        Clock.schedule_once(lambda dt: self.on_kiiro_peers_updated())
 
-    def on_dash_peers_updated(self):
+    def on_kiiro_peers_updated(self):
         self.peers = []
-        for peer, dash_peer in self.dash_net.peers.items():
-            ua = dash_peer.version.user_agent.decode('utf-8')
+        for peer, kiiro_peer in self.kiiro_net.peers.items():
+            ua = kiiro_peer.version.user_agent.decode('utf-8')
             self.peers.append((peer, ua))
 
-    def on_dash_banlist_updated_cb(self, event, *args):
-        Clock.schedule_once(lambda dt: self.on_dash_banlist_updated())
+    def on_kiiro_banlist_updated_cb(self, event, *args):
+        Clock.schedule_once(lambda dt: self.on_kiiro_banlist_updated())
 
-    def on_dash_banlist_updated(self):
-        banlist = self.dash_net.banlist
+    def on_kiiro_banlist_updated(self):
+        banlist = self.kiiro_net.banlist
         self.banlist = []
         for peer, banned in sorted(list(banlist.items())):
             self.banlist.append((peer, banned['ua']))
@@ -767,10 +767,10 @@ class DashNetDialog(Factory.Popup):
     def on_network_updated(self):
         self.local_height = str(self.net.get_local_height())
 
-    def toggle_dash_net(self, *args):
-        self.run_dash_net = not self.config.get('run_dash_net', True)
-        self.config.set_key('run_dash_net', self.run_dash_net, True)
-        self.net.run_from_another_thread(self.net.dash_net.set_parameters())
+    def toggle_kiiro_net(self, *args):
+        self.run_kiiro_net = not self.config.get('run_kiiro_net', True)
+        self.config.set_key('run_kiiro_net', self.run_kiiro_net, True)
+        self.net.run_from_another_thread(self.net.kiiro_net.set_parameters())
 
     def show_peers(self, *args):
         ConnectedPeersPopup(self).open()
@@ -779,11 +779,11 @@ class DashNetDialog(Factory.Popup):
         MaxPeersPopup(self).open()
 
     def toggle_use_static_peers(self, *args):
-        use_static_peers = not self.config.get('dash_use_static_peers', False)
+        use_static_peers = not self.config.get('kiiro_use_static_peers', False)
         self.use_static_peers = use_static_peers
-        self.config.set_key('dash_use_static_peers', use_static_peers, True)
+        self.config.set_key('kiiro_use_static_peers', use_static_peers, True)
         net = self.net
-        net.run_from_another_thread(net.dash_net.set_parameters())
+        net.run_from_another_thread(net.kiiro_net.set_parameters())
 
     def change_static_peers(self, *args):
         StaticPeersPopup(self).open()
@@ -806,7 +806,7 @@ class DashNetDialog(Factory.Popup):
         BlsSpeedPopup(self).open()
 
     def show_data_flow(self, *args):
-        DashNetDataFlowDialog(self).open()
+        KiiroNetDataFlowDialog(self).open()
 
     def show_protx_stats(self, *args):
         ProTxStatsDialog(self).open()

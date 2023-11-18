@@ -23,7 +23,7 @@ PYTHON_VERSION=3.10.11
 PY_VER_MAJOR="3.10"  # as it appears in fs paths
 PKG2APPIMAGE_COMMIT="a9c85b7e61a3a883f4a35c41c5decb5af88b6b5d"
 
-VERSION=$(git describe --tags --dirty --always)
+VERSION=$(git describe --tags --always)
 APPIMAGE="$DISTDIR/electrum-$VERSION-x86_64.AppImage"
 
 rm -rf "$BUILDDIR"
@@ -175,14 +175,19 @@ info "installing electrum and its dependencies."
 # was only needed during build time, not runtime
 "$python" -m pip uninstall -y Cython
 
+info "Installing build python_bls."
+PYTHONBLS="python_bls-0.1.10-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+download_if_not_exist "$CACHEDIR/$PYTHONBLS" "https://github.com/zebra-lucky/python-bls/releases/download/0.1.10/$PYTHONBLS"
+verify_hash "$CACHEDIR/$PYTHONBLS" "4c835fd42831de15029bab2fa1869283be1077bb16dcbe4227ad4151c4badbf4"
+"$python" -m pip install --cache-dir "$PIP_CACHE_DIR" "$CACHEDIR/$PYTHONBLS"
 
 info "copying zbar"
 cp "/usr/lib/x86_64-linux-gnu/libzbar.so.0" "$APPDIR/usr/lib/libzbar.so.0"
 
 
 info "desktop integration."
-cp "$PROJECT_ROOT/electrum.desktop" "$APPDIR/electrum.desktop"
-cp "$PROJECT_ROOT/electrum/gui/icons/electrum.png" "$APPDIR/electrum.png"
+cp "$PROJECT_ROOT/electrum-kiiro.desktop" "$APPDIR/electrum-kiiro.desktop"
+cp "$PROJECT_ROOT/electrum/gui/icons/electrum-kiiro.png" "$APPDIR/electrum-kiiro.png"
 
 
 # add launcher

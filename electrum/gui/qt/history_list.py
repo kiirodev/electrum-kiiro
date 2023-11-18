@@ -44,7 +44,7 @@ from PyQt5.QtWidgets import (QMenu, QHeaderView, QLabel, QMessageBox,
 
 from electrum.gui import messages
 from electrum.address_synchronizer import TX_HEIGHT_LOCAL
-from electrum.dash_tx import PSTxTypes, SPEC_TX_NAMES
+from electrum.kiiro_tx import PSTxTypes, SPEC_TX_NAMES
 from electrum.i18n import _
 from electrum.util import (block_explorer_URL, profiler, TxMinedInfo,
                                 timestamp_to_datetime, FILE_OWNER_MODE,

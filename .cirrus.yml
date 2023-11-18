@@ -228,6 +228,7 @@ task:
 #      - echo $CIRRUS_TASK_NAME
 #      - cat contrib/make_libsecp256k1.sh | shasum -a 256
 #      - cat contrib/make_libusb.sh | shasum -a 256
+#      - cat contrib/make_lib11hash.sh | shasum -a 256
 #      - cat contrib/make_zbar.sh | shasum -a 256
 #      - git ls-files -s contrib/osx/
 #  install_script:

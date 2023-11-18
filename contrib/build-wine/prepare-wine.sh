@@ -25,7 +25,7 @@ info "Installing Python."
 # note: you might need "sudo apt-get install dirmngr" for the following
 # keys from https://www.python.org/downloads/#pubkeys
 KEYRING_PYTHON_DEV="keyring-electrum-build-python-dev.gpg"
-gpg --no-default-keyring --keyring $KEYRING_PYTHON_DEV --import "$here"/gpg_keys/4AA9049527D1967FD4DE9EC0F32965D65E389578.asc
+gpg --no-default-keyring --keyring $KEYRING_PYTHON_DEV --import "$here"/gpg_keys/7ED10B6531D7C8E1BC296021FC624643487034E5.asc
 if [ "$WIN_ARCH" = "win32" ] ; then
     PYARCH="win32"
 elif [ "$WIN_ARCH" = "win64" ] ; then
@@ -43,6 +43,12 @@ for msifile in core dev exe lib pip tools; do
     wine msiexec /i "$PYTHON_DOWNLOADS/${msifile}.msi" /qb TARGETDIR=$WINE_PYHOME || fail "wine msiexec failed for ${msifile}.msi"
 done
 
+info "Installing build python_bls."
+PYTHONBLS="python_bls-0.1.10-cp310-cp310-win32.whl"
+download_if_not_exist "$CACHEDIR/$PYTHONBLS" "https://files.pythonhosted.org/packages/eb/1f/a76cc937ca2344641a50fc7e29ab747093a6f1d475c321ce815bb106dc8a/$PYTHONBLS"
+verify_hash "$CACHEDIR/$PYTHONBLS" "d25724c1ca2a90762d3ef15bc9eade7e981e7ec2ba284f9491394c2bb7dde2a0"
+$WINE_PYTHON -m pip install --cache-dir "$WINE_PIP_CACHE_DIR" "$CACHEDIR/$PYTHONBLS"
+
 break_legacy_easy_install
 
 info "Installing build dependencies."
@@ -51,12 +57,10 @@ $WINE_PYTHON -m pip install --no-build-isolation --no-dependencies --no-warn-scr
 $WINE_PYTHON -m pip install --no-build-isolation --no-dependencies --no-binary :all: --no-warn-script-location \
     --cache-dir "$WINE_PIP_CACHE_DIR" -r "$CONTRIB"/deterministic-build/requirements-build-wine.txt
 
-
 # copy already built DLLs
 cp "$DLL_TARGET_DIR"/libsecp256k1-*.dll $WINEPREFIX/drive_c/tmp/ || fail "Could not copy libsecp to its destination"
 cp "$DLL_TARGET_DIR/libzbar-0.dll" $WINEPREFIX/drive_c/tmp/ || fail "Could not copy libzbar to its destination"
 cp "$DLL_TARGET_DIR/libusb-1.0.dll" $WINEPREFIX/drive_c/tmp/ || fail "Could not copy libusb to its destination"
-
 
 info "Building PyInstaller."
 # we build our own PyInstaller boot loader as the default one has high

@@ -13,8 +13,8 @@ from electrum.util import format_satoshis
 from electrum.bitcoin import is_address, COIN
 from electrum.transaction import PartialTxOutput
 from electrum.network import TxBroadcastError, BestEffortRequestFailed
-from electrum.dash_ps_util import filter_log_line, PSLogSubCat
-from electrum.dash_tx import SPEC_TX_NAMES
+from electrum.kiiro_ps_util import filter_log_line, PSLogSubCat
+from electrum.kiiro_tx import SPEC_TX_NAMES
 
 _ = lambda x:x  # i18n
 

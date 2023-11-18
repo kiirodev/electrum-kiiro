@@ -6,10 +6,12 @@
 ;--------------------------------
 ;Variables
 
-  !define PRODUCT_NAME "Electrum"
+  !define PRODUCT_NAME "Electrum Kiiro"
+  !define PRODUCT_NAME_NO_SPACE "Electrum-Kiiro"
   !define PRODUCT_WEB_SITE "https://github.com/kiirodev/electrum-kiiro"
   !define PRODUCT_PUBLISHER "Electrum Technologies GmbH"
   !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
+  !define BUILD_ARCH "${WINEARCH}"
 
 ;--------------------------------
 ;General
@@ -58,13 +60,13 @@
   VIAddVersionKey ProductName "${PRODUCT_NAME} Installer"
   VIAddVersionKey Comments "The installer for ${PRODUCT_NAME}"
   VIAddVersionKey CompanyName "${PRODUCT_NAME}"
-  VIAddVersionKey LegalCopyright "2013-2018 ${PRODUCT_PUBLISHER}"
+  VIAddVersionKey LegalCopyright "2023 ${PRODUCT_PUBLISHER}"
   VIAddVersionKey FileDescription "${PRODUCT_NAME} Installer"
   VIAddVersionKey FileVersion ${PRODUCT_VERSION}
   VIAddVersionKey ProductVersion ${PRODUCT_VERSION}
   VIAddVersionKey InternalName "${PRODUCT_NAME} Installer"
-  VIAddVersionKey LegalTrademarks "${PRODUCT_NAME} is a trademark of ${PRODUCT_PUBLISHER}"
-  VIAddVersionKey OriginalFilename "${PRODUCT_NAME}.exe"
+  VIAddVersionKey LegalTrademarks "${PRODUCT_NAME} is a trademark of ${PRODUCT_PUBLISHER}" 
+  VIAddVersionKey OriginalFilename "${PRODUCT_NAME}-${PRODUCT_VERSION}-setup-${BUILD_ARCH}.exe"
 
 ;--------------------------------
 ;Interface Settings
@@ -72,12 +74,13 @@
   !define MUI_ABORTWARNING
   !define MUI_ABORTWARNING_TEXT "Are you sure you wish to abort the installation of ${PRODUCT_NAME}?"
 
-  !define MUI_ICON "..\..\electrum\gui\icons\electrum.ico"
+  !define MUI_ICON "..\..\electrum\gui\icons\electrum-kiiro.ico"
 
 ;--------------------------------
 ;Pages
 
   !insertmacro MUI_PAGE_DIRECTORY
+  !insertmacro MUI_PAGE_COMPONENTS
   !insertmacro MUI_PAGE_INSTFILES
   !insertmacro MUI_UNPAGE_CONFIRM
   !insertmacro MUI_UNPAGE_INSTFILES
@@ -101,7 +104,7 @@ Function .onInit
 	${EndIf}
 FunctionEnd
 
-Section
+Section "${PRODUCT_NAME}" SectionDE
   SetOutPath $INSTDIR
 
   ;Uninstall previous version files
@@ -111,7 +114,7 @@ Section
 
   ;Files to pack into the installer
   File /r "dist\electrum\*.*"
-  File "..\..\electrum\gui\icons\electrum.ico"
+  File "..\..\electrum\gui\icons\electrum-kiiro.ico"
 
   ;Store installation folder
   WriteRegStr HKCU "Software\${PRODUCT_NAME}" "" $INSTDIR
@@ -122,25 +125,21 @@ Section
 
   ;Create desktop shortcut
   DetailPrint "Creating desktop shortcut..."
-  CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\electrum-${PRODUCT_VERSION}.exe" ""
+  CreateShortCut "$DESKTOP\${PRODUCT_NAME}.lnk" "$INSTDIR\electrum-kiiro-${PRODUCT_VERSION}.exe" ""
 
   ;Create start-menu items
   DetailPrint "Creating start-menu items..."
   CreateDirectory "$SMPROGRAMS\${PRODUCT_NAME}"
   CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\Uninstall.lnk" "$INSTDIR\Uninstall.exe" "" "$INSTDIR\Uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\electrum-${PRODUCT_VERSION}.exe" "" "$INSTDIR\electrum-${PRODUCT_VERSION}.exe" 0
-  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME} Testnet.lnk" "$INSTDIR\electrum-${PRODUCT_VERSION}.exe" "--testnet" "$INSTDIR\electrum-${PRODUCT_VERSION}.exe" 0
+  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME}.lnk" "$INSTDIR\electrum-kiiro-${PRODUCT_VERSION}.exe" "" "$INSTDIR\electrum-kiiro-${PRODUCT_VERSION}.exe" 0
+  CreateShortCut "$SMPROGRAMS\${PRODUCT_NAME}\${PRODUCT_NAME} Testnet.lnk" "$INSTDIR\electrum-kiiro-${PRODUCT_VERSION}.exe" "--testnet" "$INSTDIR\electrum-kiiro-${PRODUCT_VERSION}.exe" 0
 
 
-  ;Links bitcoin: and lightning: URIs to Electrum
-  WriteRegStr HKCU "Software\Classes\bitcoin" "" "URL:bitcoin Protocol"
-  WriteRegStr HKCU "Software\Classes\bitcoin" "URL Protocol" ""
-  WriteRegStr HKCU "Software\Classes\bitcoin" "DefaultIcon" "$\"$INSTDIR\electrum.ico, 0$\""
-  WriteRegStr HKCU "Software\Classes\bitcoin\shell\open\command" "" "$\"$INSTDIR\electrum-${PRODUCT_VERSION}.exe$\" $\"%1$\""
-  WriteRegStr HKCU "Software\Classes\lightning" "" "URL:lightning Protocol"
-  WriteRegStr HKCU "Software\Classes\lightning" "URL Protocol" ""
-  WriteRegStr HKCU "Software\Classes\lightning" "DefaultIcon" "$\"$INSTDIR\electrum.ico, 0$\""
-  WriteRegStr HKCU "Software\Classes\lightning\shell\open\command" "" "$\"$INSTDIR\electrum-${PRODUCT_VERSION}.exe$\" $\"%1$\""
+  ;Links kiiro: URI's to Electrum
+  WriteRegStr HKCU "Software\Classes\kiiro" "" "URL:kiiro Protocol"
+  WriteRegStr HKCU "Software\Classes\kiiro" "URL Protocol" ""
+  WriteRegStr HKCU "Software\Classes\kiiro" "DefaultIcon" "$\"$INSTDIR\electrum-kiiro.ico, 0$\""
+  WriteRegStr HKCU "Software\Classes\kiiro\shell\open\command" "" "$\"$INSTDIR\electrum-kiiro-${PRODUCT_VERSION}.exe$\" $\"%1$\""
 
   ;Adds an uninstaller possibility to Windows Uninstall or change a program section
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
@@ -148,7 +147,7 @@ Section
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
-  WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\electrum.ico"
+  WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\electrum-kiiro.ico"
 
   ;Fixes Windows broken size estimates
   ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
@@ -158,6 +157,12 @@ SectionEnd
 
 ;--------------------------------
 ;Descriptions
+LangString DESC_DE ${LANG_ENGLISH} "Kiiro Electrum Wallet"
+LangString DESC_TOR ${LANG_ENGLISH} "The Tor Project Socks Proxy"
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionDE} $(DESC_DE)
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------
 ;Uninstaller Section
@@ -170,8 +175,8 @@ Section "Uninstall"
   Delete "$DESKTOP\${PRODUCT_NAME}.lnk"
   Delete "$SMPROGRAMS\${PRODUCT_NAME}\*.*"
   RMDir  "$SMPROGRAMS\${PRODUCT_NAME}"
-
-  DeleteRegKey HKCU "Software\Classes\bitcoin"
+  
+  DeleteRegKey HKCU "Software\Classes\kiiro"
   DeleteRegKey HKCU "Software\${PRODUCT_NAME}"
   DeleteRegKey HKCU "${PRODUCT_UNINST_KEY}"
 SectionEnd

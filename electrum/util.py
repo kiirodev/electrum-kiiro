@@ -107,7 +107,7 @@ def decimal_point_to_base_unit_name(dp: int) -> str:
 
 
 def base_unit_name_to_decimal_point(unit_name: str) -> int:
-    # e.g. "DASH" -> 8
+    # e.g. "KIIRO" -> 8
     try:
         return base_units[unit_name]
     except KeyError:
@@ -780,7 +780,7 @@ mainnet_block_explorers = {
     'kiirocoin.org': ('https://explorer.kiirocoin.org/',
                  {'tx': 'tx/', 'addr': 'address/'}),
 
-    #'Insight.dash.org': ('https://insight.dash.org/insight/',
+    #'Insight.kiiro.org': ('https://insight.kiiro.org/insight/',
     #                     {'tx': 'tx/', 'addr': 'address/'}),
     #'system default': ('blockchain:/',
     #                   {'tx': 'tx/', 'addr': 'address/'}),
@@ -1126,7 +1126,7 @@ class TxMinedInfo(NamedTuple):
 
 def make_aiohttp_session(proxy: Optional[dict], headers=None, timeout=None):
     if headers is None:
-        headers = {'User-Agent': 'Dash-Electrum'}
+        headers = {'User-Agent': 'Kiiro-Electrum'}
     if timeout is None:
         # The default timeout is high intentionally.
         # DNS on some systems can be really slow, see e.g. #5337

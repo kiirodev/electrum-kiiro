@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# Dash-Electrum - lightweight Dash client
-# Copyright (C) 2019 Dash Developers
+# Kiiro-Electrum - lightweight Kiiro client
+# Copyright (C) 2019 Kiiro Developers
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -29,8 +29,8 @@ import threading
 from . import constants, util
 from .bitcoin import address_to_script, is_b58_address, b58_address_to_hash160
 from .protx_list import MNList
-from .dash_tx import (TxOutPoint, ProTxService, DashProRegTx, DashProUpServTx,
-                      DashProUpRegTx, DashProUpRevTx,
+from .kiiro_tx import (TxOutPoint, ProTxService, KiiroProRegTx, KiiroProUpServTx,
+                      KiiroProUpRegTx, KiiroProUpRevTx,
                       SPEC_PRO_REG_TX, SPEC_PRO_UP_SERV_TX,
                       SPEC_PRO_UP_REG_TX, SPEC_PRO_UP_REV_TX, str_ip)
 from .util import bfh, bh2u
@@ -302,7 +302,7 @@ class ProTxManager(Logger):
         KeyIdVoting = b58_address_to_hash160(mn.voting_addr)[1]
         payloadSig = b'' if coll_hash_is_null else b'\x00'*65
 
-        tx = DashProRegTx(1, mn.type, mn.mode, mn.collateral, mn.service.ip,
+        tx = KiiroProRegTx(1, mn.type, mn.mode, mn.collateral, mn.service.ip,
                           mn.service.port, KeyIdOwner, PubKeyOperator,
                           KeyIdVoting, mn.op_reward, scriptPayout,
                           b'\x00'*32, payloadSig)
@@ -333,7 +333,7 @@ class ProTxManager(Logger):
         else:
             scriptOpPayout = b''
 
-        tx = DashProUpServTx(1, bfh(mn.protx_hash)[::-1],
+        tx = KiiroProUpServTx(1, bfh(mn.protx_hash)[::-1],
                              mn.service.ip, mn.service.port,
                              scriptOpPayout, b'\x00'*32, b'\x00'*96)
         return tx
@@ -362,7 +362,7 @@ class ProTxManager(Logger):
         PubKeyOperator = bfh(mn.pubkey_operator)
         KeyIdVoting = b58_address_to_hash160(mn.voting_addr)[1]
 
-        tx = DashProUpRegTx(1, bfh(mn.protx_hash)[::-1], mn.mode,
+        tx = KiiroProUpRegTx(1, bfh(mn.protx_hash)[::-1], mn.mode,
                             PubKeyOperator, KeyIdVoting, scriptPayout,
                             b'\x00'*32, b'\x00'*65)
         return tx
@@ -382,7 +382,7 @@ class ProTxManager(Logger):
         if not isinstance(reason, int) or not 0 <= reason <= 3:
             raise ProRegTxExc('Reason must be integer in range 0-3')
 
-        tx = DashProUpRevTx(1, bfh(mn.protx_hash)[::-1], reason,
+        tx = KiiroProUpRevTx(1, bfh(mn.protx_hash)[::-1], reason,
                             b'\x00'*32, b'\x00'*96)
         return tx
 

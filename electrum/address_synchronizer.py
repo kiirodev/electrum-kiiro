@@ -32,9 +32,9 @@ from aiorpcx import TaskGroup
 
 from . import bitcoin, util
 from .bitcoin import COINBASE_MATURITY
-from .dash_ps import PSManager
-from .dash_ps_util import PSCoinRounds, PS_MIXING_TX_TYPES
-from .dash_tx import tx_header_to_tx_type
+from .kiiro_ps import PSManager
+from .kiiro_ps_util import PSCoinRounds, PS_MIXING_TX_TYPES
+from .kiiro_tx import tx_header_to_tx_type
 from .util import profiler, bfh, TxMinedInfo, UnrelatedTransactionException, with_lock
 from .protx import ProTxManager
 from .transaction import Transaction, TxOutput, TxInput, PartialTxInput, TxOutpoint, PartialTransaction
@@ -204,21 +204,21 @@ class AddressSynchronizer(Logger):
             util.register_callback(self.on_blockchain_updated, ['blockchain_updated'])
             self.protx_manager.on_network_start(self.network)
             self.psman.on_network_start(self.network)
-            util.register_callback(self.on_dash_islock, ['dash-islock'])
+            util.register_callback(self.on_kiiro_islock, ['kiiro-islock'])
 
     def on_blockchain_updated(self, event, *args):
         self._get_addr_balance_cache = {}  # invalidate cache
         self.db.process_and_clear_islocks(self.get_local_height())
 
-    def on_dash_islock(self, event, txid):
+    def on_kiiro_islock(self, event, txid):
         if txid in self.db.islocks:
             return
         elif not self.network:
             return
         elif txid in self.unverified_tx or txid in self.db.verified_tx:
             self.logger.info(f'found tx for islock: {txid}')
-            dash_net = self.network.dash_net
-            if dash_net.verify_on_recent_islocks(txid):
+            kiiro_net = self.network.kiiro_net
+            if kiiro_net.verify_on_recent_islocks(txid):
                 self.db.add_islock(txid)
                 self._get_addr_balance_cache = {}  # invalidate cache
                 self.save_db()
@@ -230,8 +230,8 @@ class AddressSynchronizer(Logger):
         elif not self.network:
             return
         else:
-            dash_net = self.network.dash_net
-            if dash_net.verify_on_recent_islocks(txid):
+            kiiro_net = self.network.kiiro_net
+            if kiiro_net.verify_on_recent_islocks(txid):
                 self.db.add_islock(txid)
                 self._get_addr_balance_cache = {}  # invalidate cache
                 self.save_db()
@@ -250,7 +250,7 @@ class AddressSynchronizer(Logger):
                 self.verifier = None
                 util.unregister_callback(self.on_blockchain_updated)
                 self.psman.on_stop_threads()
-                util.unregister_callback(self.on_dash_islock)
+                util.unregister_callback(self.on_kiiro_islock)
                 self.db.put('stored_height', self.get_local_height())
 
     def add_address(self, address, ps_ks=False):

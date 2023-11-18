@@ -2,8 +2,8 @@ import asyncio
 from pprint import pprint
 
 from electrum import transaction
-from electrum.dash_tx import DashTxError, TxOutPoint, ProTxBase
-from electrum.dash_tx import (SPEC_PRO_REG_TX, SPEC_PRO_UP_SERV_TX,
+from electrum.kiiro_tx import KiiroTxError, TxOutPoint, ProTxBase
+from electrum.kiiro_tx import (SPEC_PRO_REG_TX, SPEC_PRO_UP_SERV_TX,
                                    SPEC_PRO_UP_REG_TX, SPEC_PRO_UP_REV_TX,
                                    SPEC_CB_TX, SPEC_SUB_TX_REGISTER,
                                    SPEC_SUB_TX_TOPUP, SPEC_SUB_TX_RESET_KEY,
@@ -330,7 +330,7 @@ WRONG_SPEC_TX = (  # Tx version < 3
 TEST_HASH = 'a7b64e6eab08bf2b87e64f6a248eb7eeef8a3c7fe07cadb0c631090100bb0002'
 
 
-class TestDashTx(SequentialTestCase):
+class TestKiiroTx(SequentialTestCase):
 
     def test_tx_outpoint(self):
         # test normal outpoint
@@ -370,7 +370,7 @@ class TestDashTx(SequentialTestCase):
         assert str(o2) == str(o)
 
 
-class TestDashSpecTxSerialization(SequentialTestCase):
+class TestKiiroSpecTxSerialization(SequentialTestCase):
 
     def setUp(self):
         super().setUp()
@@ -381,7 +381,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         self.asyncio_loop.call_soon_threadsafe(self._stop_loop.set_result, 1)
         self._loop_thread.join(timeout=1)
 
-    def test_dash_tx_v2(self):
+    def test_kiiro_tx_v2(self):
         tx = transaction.Transaction(V2_TX)
         deser = tx.to_json()
         assert deser['version'] == 2
@@ -391,7 +391,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         ser = tx.serialize()
         assert ser == V2_TX
 
-    def test_dash_tx_cb_tx(self):
+    def test_kiiro_tx_cb_tx(self):
         tx = transaction.Transaction(CB_TX)
         deser = tx.to_json()
         assert deser['version'] == 3
@@ -413,7 +413,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         assert extra2.height == extra.height
         assert extra2.merkleRootMNList == extra.merkleRootMNList
 
-    def test_dash_tx_cb_tx_v2(self):
+    def test_kiiro_tx_cb_tx_v2(self):
         tx = transaction.Transaction(CB_TX_V2)
         deser = tx.to_json()
         assert deser['version'] == 3
@@ -437,7 +437,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         assert extra2.height == extra.height
         assert extra2.merkleRootMNList == extra.merkleRootMNList
 
-    def test_dash_tx_pro_reg_tx(self):
+    def test_kiiro_tx_pro_reg_tx(self):
         tx = transaction.Transaction(PRO_REG_TX)
         deser = tx.to_json()
         assert deser['version'] == 3
@@ -488,7 +488,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         assert extra2.inputsHash == extra.inputsHash
         assert extra2.payloadSig == extra.payloadSig
 
-    def test_dash_tx_pro_up_serv_tx(self):
+    def test_kiiro_tx_pro_up_serv_tx(self):
         tx = transaction.Transaction(PRO_UP_SERV_TX)
         deser = tx.to_json()
         assert deser['version'] == 3
@@ -522,7 +522,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         assert extra2.inputsHash == extra.inputsHash
         assert extra2.payloadSig == extra.payloadSig
 
-    def test_dash_tx_pro_up_reg_tx(self):
+    def test_kiiro_tx_pro_up_reg_tx(self):
         tx = transaction.Transaction(PRO_UP_REG_TX)
         deser = tx.to_json()
         assert deser['version'] == 3
@@ -557,7 +557,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         assert extra2.inputsHash == extra.inputsHash
         assert extra2.payloadSig == extra.payloadSig
 
-    def test_dash_tx_pro_up_rev_tx(self):
+    def test_kiiro_tx_pro_up_rev_tx(self):
         tx = transaction.Transaction(PRO_UP_REV_TX)
         deser = tx.to_json()
         assert deser['version'] == 3
@@ -586,7 +586,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         assert extra2.inputsHash == extra.inputsHash
         assert extra2.payloadSig == extra.payloadSig
 
-    def test_dash_tx_sub_tx_register(self):
+    def test_kiiro_tx_sub_tx_register(self):
         tx = transaction.Transaction(SUB_TX_REGISTER)
         deser = tx.to_json()
         assert deser['version'] == 3
@@ -612,7 +612,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         assert extra2.pubKey == extra.pubKey
         assert extra2.payloadSig == extra.payloadSig
 
-    def test_dash_tx_sub_tx_topup(self):
+    def test_kiiro_tx_sub_tx_topup(self):
         tx = transaction.Transaction(SUB_TX_TOPUP)
         deser = tx.to_json()
         assert deser['version'] == 3
@@ -633,7 +633,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         assert extra2.version == extra.version
         assert extra2.regTxHash == extra.regTxHash
 
-    def test_dash_tx_sub_tx_reset_key(self):
+    def test_kiiro_tx_sub_tx_reset_key(self):
         tx = transaction.Transaction(SUB_TX_RESET_KEY)
         deser = tx.to_json()
         assert deser['version'] == 3
@@ -665,7 +665,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         assert extra2.newPubKey == extra.newPubKey
         assert extra2.payloadSig == extra.payloadSig
 
-    def test_dash_tx_sub_tx_close_account(self):
+    def test_kiiro_tx_sub_tx_close_account(self):
         tx = transaction.Transaction(SUB_TX_CLOSE_ACCOUNT)
         deser = tx.to_json()
         assert deser['version'] == 3
@@ -695,12 +695,12 @@ class TestDashSpecTxSerialization(SequentialTestCase):
         assert extra2.creditFee == extra.creditFee
         assert extra2.payloadSig == extra.payloadSig
 
-    def test_dash_tx_unknown_spec_tx(self):
+    def test_kiiro_tx_unknown_spec_tx(self):
         tx = transaction.Transaction(UNKNOWN_SPEC_TX)
-        with self.assertRaises(DashTxError):
+        with self.assertRaises(KiiroTxError):
             tx.to_json()
 
-    def test_dash_tx_wrong_spec_tx(self):
+    def test_kiiro_tx_wrong_spec_tx(self):
         tx = transaction.Transaction(WRONG_SPEC_TX)
         deser = tx.to_json()
         assert deser['version'] == 12255234
@@ -724,7 +724,7 @@ class TestDashSpecTxSerialization(SequentialTestCase):
 
     def test_deserialize_transaction_unknown_spec_tx(self):
         cmds = Commands(config=None)
-        with self.assertRaises(DashTxError):
+        with self.assertRaises(KiiroTxError):
             coro = cmds.deserialize(UNKNOWN_SPEC_TX)
             fut = asyncio.run_coroutine_threadsafe(coro, asyncio.get_event_loop())
             result = fut.result()

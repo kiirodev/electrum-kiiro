@@ -11,9 +11,9 @@ from math import floor, ceil
 
 from .bip32 import convert_bip32_intpath_to_strpath
 from .bitcoin import pubkey_to_address
-from .dash_tx import STANDARD_TX, PSTxTypes, SPEC_TX_NAMES
-from .dash_msg import PRIVATESEND_ENTRY_MAX_SIZE
-from .dash_ps_util import (PSTxWorkflow, PSDenominateWorkflow, PSStates,
+from .kiiro_tx import STANDARD_TX, PSTxTypes, SPEC_TX_NAMES
+from .kiiro_msg import PRIVATESEND_ENTRY_MAX_SIZE
+from .kiiro_ps_util import (PSTxWorkflow, PSDenominateWorkflow, PSStates,
                            PS_DENOMS_VALS, COLLATERAL_VAL, MIN_DENOM_VAL,
                            CREATE_COLLATERAL_VAL, CREATE_COLLATERAL_VALS,
                            PSCoinRounds, to_duffs, PS_VALS, PS_SAVED_TX_TYPES,
@@ -156,7 +156,7 @@ class KeyPairsMixin:
         # additional reserve for addrs used by denoms with rounds eq mix_rounds
         sign_denoms_cnt += (total_denoms_cnt - next_rounds_denoms_cnt)
 
-        # Dash Core charges the collateral randomly in 1/10 mixing transactions
+        # Kiiro Core charges the collateral randomly in 1/10 mixing transactions
         # * avg denoms in mixing transactions is 5 (1-9), but real count
         #   currently is about ~1.1 on testnet, use same for mainnet
         pay_collateral_cnt = ceil(sign_denoms_cnt/10/1.1)

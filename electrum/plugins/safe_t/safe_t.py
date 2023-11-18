@@ -6,7 +6,7 @@ from typing import NamedTuple, Any, Optional, Dict, Union, List, Tuple, TYPE_CHE
 from electrum.util import bfh, bh2u, versiontuple, UserCancelled, UserFacingException
 from electrum.bip32 import BIP32Node
 from electrum import constants
-from electrum.dash_tx import to_varbytes, serialize_extra_payload
+from electrum.kiiro_tx import to_varbytes, serialize_extra_payload
 from electrum.i18n import _
 from electrum.plugin import Device, runs_in_hwd_thread
 from electrum.transaction import Transaction, PartialTransaction, PartialTxInput, PartialTxOutput
@@ -158,7 +158,7 @@ class SafeTPlugin(HW_PluginBase):
         return client
 
     def get_coin_name(self):
-        return "Dash Testnet" if constants.net.TESTNET else "Dash"
+        return "Kiiro Testnet" if constants.net.TESTNET else "Kiiro"
 
     def initialize_device(self, device_id, wizard, handler):
         # Initialization method

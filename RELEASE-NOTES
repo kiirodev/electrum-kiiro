@@ -22,12 +22,12 @@
  * wallet/kivy: fix feerate calc (float Decimal conversion) #258
  * PS: fix processing of new_denoms/collateral wfls #261
  * PS: do not check enough small denoms for ABS calc method #262
- * network: do not stop dash_net/mn_list if not full_shutdown #263
+ * network: do not stop kiiro_net/mn_list if not full_shutdown #263
  * PS: add gathering mixing statistics #266
  * Qt fix: remove BlockingWaitingDialog use, other qt fixes #268
  * protx/qt: allow add MN with IP/BLS pubk found in registered MNs #269
  * protx_list: MNList.reset: notify gui, clear protx_info data #270
- * dash_net: rm staled [test.]dnsseed.masternode.io #271
+ * kiiro_net: rm staled [test.]dnsseed.masternode.io #271
  * Enhance PS gui logging about session timeouts #272
  * Kivy: fix start mixing with protected method #275
 
@@ -35,9 +35,9 @@
 # Release 4.1.2.1
 
  * base_wizard.py, keystore.py: add purpose48 multisig #244
- * dash_ps: enhance new denoms/collateral patterns #246
+ * kiiro_ps: enhance new denoms/collateral patterns #246
  * commands load_wallet: add set current for commands option #247
- * dash_ps: fix _calc_total_need_val #248
+ * kiiro_ps: fix _calc_total_need_val #248
  * qt dip3: make wizards modeless #251
  * Fix kivy: show tx type again #252
  * base_wizard.py: fix choose_keystore (create seed) #253
@@ -87,8 +87,8 @@
  * installwizard: show hw xpub after adding cosigner (#220)
  * Add plugin scan_over_gap (#221)
  * qt: add show_utxo_time config/qt option (#222)
- * Split dash_ps module (#223)
- * dash_ps: allow set absolute denoms count to mix (#224)
+ * Split kiiro_ps module (#223)
+ * kiiro_ps: allow set absolute denoms count to mix (#224)
  * fixes for privatesend with hw wallet (#225)
 
 
@@ -267,8 +267,8 @@
 # Release 3.3.8
 
  * appimage: URLs could not be opened on some desktop environments (#5425)
- * add Dash P2P Network for InstantSend support (dash_net, dash_peer,
-   dash_msg modules, qt/kivy gui)
+ * add Dash P2P Network for InstantSend support (kiiro_net, kiiro_peer,
+   kiiro_msg modules, qt/kivy gui)
  * add InstantSend support (wallet/stdio/text/qt/kivy)
  * refactor ProTx support (stores ProTX MNs and LLMQ lists in file)
  * refresh checkpoints, use gzipped checkpoints, add testnet checkpoints

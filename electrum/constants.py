@@ -199,7 +199,7 @@ class BitcoinRegtest(AbstractNet):
 # class BitcoinRegtest(BitcoinTestnet):
 
 #     NET_NAME = "regtest"
-#     GENESIS = "000008ca1832a4baf228eb1553c03d3a2c8e02399550dd6ea8d65cec3ef23d2e" # Dash regtest genesis
+#     GENESIS = "000008ca1832a4baf228eb1553c03d3a2c8e02399550dd6ea8d65cec3ef23d2e" # Kiiro regtest genesis
 #     DEFAULT_SERVERS = read_json('servers_regtest.json', {})
 #     COIN = coins.KiiroTestnet()
 #     DIP3_ACTIVATION_HEIGHT = 5000

@@ -18,7 +18,7 @@ from electrum.wallet_db import WalletDB
 from electrum.storage import WalletStorage
 from electrum.network import NetworkParameters, TxBroadcastError, BestEffortRequestFailed
 from electrum.interface import ServerAddr
-from electrum.dash_tx import SPEC_TX_NAMES
+from electrum.kiiro_tx import SPEC_TX_NAMES
 
 if TYPE_CHECKING:
     from electrum.daemon import Daemon

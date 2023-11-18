@@ -32,13 +32,18 @@ from ctypes import (
     CFUNCTYPE, POINTER, cast
 )
 
-from .util import bfh, bh2u, assert_bytes, to_bytes, InvalidPassword, profiler, randrange
+from .util import bfh, assert_bytes, to_bytes, InvalidPassword, profiler, randrange
 from .crypto import (sha256d, aes_encrypt_with_iv, aes_decrypt_with_iv, hmac_oneshot)
 from . import constants
 from .logging import get_logger
 from .ecc_fast import _libsecp256k1, SECP256K1_EC_UNCOMPRESSED
 
 _logger = get_logger(__name__)
+
+
+# Some unit tests need to create ECDSA sigs without grinding the R value (and just use RFC6979).
+# see https://github.com/bitcoin/bitcoin/pull/13666
+ENABLE_ECDSA_R_VALUE_GRINDING = True
 
 
 def string_to_number(b: bytes) -> int:
@@ -154,7 +159,7 @@ class ECPubkey(object):
         assert_bytes(sig_string)
         if len(sig_string) != 64:
             raise Exception(f'wrong encoding used for signature? len={len(sig_string)} (should be 64)')
-        if recid < 0 or recid > 3:
+        if not (0 <= recid <= 3):
             raise ValueError('recid is {}, but should be 0 <= recid <= 3'.format(recid))
         sig65 = create_string_buffer(65)
         ret = _libsecp256k1.secp256k1_ecdsa_recoverable_signature_parse_compact(
@@ -168,19 +173,34 @@ class ECPubkey(object):
         return ECPubkey._from_libsecp256k1_pubkey_ptr(pubkey)
 
     @classmethod
-    def from_signature65(cls, sig: bytes, msg_hash: bytes) -> Tuple['ECPubkey', bool]:
+    def from_signature65(cls, sig: bytes, msg_hash: bytes) -> Tuple['ECPubkey', bool, Optional[str]]:
         if len(sig) != 65:
             raise Exception(f'wrong encoding used for signature? len={len(sig)} (should be 65)')
         nV = sig[0]
-        if nV < 27 or nV >= 35:
+        # as per BIP-0137:
+        #     27-30: p2pkh (uncompressed)
+        #     31-34: p2pkh (compressed)
+        #     35-38: p2wpkh-p2sh
+        #     39-42: p2wpkh
+        # However, the signatures we create do not respect this, and we instead always use 27-34,
+        # only distinguishing between compressed/uncompressed, so we treat those values as "any".
+        if not (27 <= nV <= 42):
             raise Exception("Bad encoding")
-        if nV >= 31:
-            compressed = True
+        txin_type_guess = None
+        compressed = True
+        if nV >= 39:
+            nV -= 12
+            txin_type_guess = "p2wpkh"
+        elif nV >= 35:
+            nV -= 8
+            txin_type_guess = "p2wpkh-p2sh"
+        elif nV >= 31:
             nV -= 4
         else:
             compressed = False
         recid = nV - 27
-        return cls.from_sig_string(sig[1:], recid, msg_hash), compressed
+        pubkey = cls.from_sig_string(sig[1:], recid, msg_hash)
+        return pubkey, compressed, txin_type_guess
 
     @classmethod
     def from_x_and_y(cls, x: int, y: int) -> 'ECPubkey':
@@ -189,7 +209,7 @@ class ECPubkey(object):
                   + int.to_bytes(y, length=32, byteorder='big', signed=False))
         return ECPubkey(_bytes)
 
-    def get_public_key_bytes(self, compressed=True):
+    def get_public_key_bytes(self, compressed=True) -> bytes:
         if self.is_at_infinity(): raise Exception('point is at infinity')
         x = int.to_bytes(self.x(), length=32, byteorder='big', signed=False)
         y = int.to_bytes(self.y(), length=32, byteorder='big', signed=False)
@@ -200,16 +220,19 @@ class ECPubkey(object):
             header = b'\x04'
             return header + x + y
 
-    def get_public_key_hex(self, compressed=True):
-        return bh2u(self.get_public_key_bytes(compressed))
+    def get_public_key_hex(self, compressed=True) -> str:
+        return self.get_public_key_bytes(compressed).hex()
 
-    def point(self) -> Tuple[int, int]:
-        return self.x(), self.y()
+    def point(self) -> Tuple[Optional[int], Optional[int]]:
+        x = self.x()
+        y = self.y()
+        assert (x is None) == (y is None), f"either both x and y, or neither should be None. {(x, y)=}"
+        return x, y
 
-    def x(self) -> int:
+    def x(self) -> Optional[int]:
         return self._x
 
-    def y(self) -> int:
+    def y(self) -> Optional[int]:
         return self._y
 
     def _to_libsecp256k1_pubkey_ptr(self):
@@ -283,44 +306,40 @@ class ECPubkey(object):
     def __lt__(self, other):
         if not isinstance(other, ECPubkey):
             raise TypeError('comparison not defined for ECPubkey and {}'.format(type(other)))
-        return (self.x() or 0) < (other.x() or 0)
+        p1 = ((self.x() or 0), (self.y() or 0))
+        p2 = ((other.x() or 0), (other.y() or 0))
+        return p1 < p2
 
-    def verify_digest_for_address(self, sig65: bytes, digest: bytes) -> None:
-        assert_bytes(digest)
-        public_key, compressed = self.from_signature65(sig65, digest)
-        # check public key
-        if public_key != self:
-            raise Exception("Bad signature")
-        # check message
-        self.verify_message_hash(sig65[1:], digest)
-
-    def verify_message_for_address(self, sig65: bytes, message: bytes, algo=lambda x: sha256d(msg_magic(x))) -> None:
+    def verify_message_for_address(self, sig65: bytes, message: bytes, algo=lambda x: sha256d(msg_magic(x))) -> bool:
         assert_bytes(message)
         h = algo(message)
-        public_key, compressed = self.from_signature65(sig65, h)
+        try:
+            public_key, compressed, txin_type_guess = self.from_signature65(sig65, h)
+        except Exception:
+            return False
         # check public key
         if public_key != self:
-            raise Exception("Bad signature")
+            return False
         # check message
-        self.verify_message_hash(sig65[1:], h)
+        return self.verify_message_hash(sig65[1:], h)
 
-    # TODO return bool instead of raising
-    def verify_message_hash(self, sig_string: bytes, msg_hash: bytes) -> None:
+    def verify_message_hash(self, sig_string: bytes, msg_hash: bytes) -> bool:
         assert_bytes(sig_string)
         if len(sig_string) != 64:
-            raise Exception(f'wrong encoding used for signature? len={len(sig_string)} (should be 64)')
+            return False
         if not (isinstance(msg_hash, bytes) and len(msg_hash) == 32):
-            raise Exception("msg_hash must be bytes, and 32 bytes exactly")
+            return False
 
         sig = create_string_buffer(64)
         ret = _libsecp256k1.secp256k1_ecdsa_signature_parse_compact(_libsecp256k1.ctx, sig, sig_string)
         if not ret:
-            raise Exception("Bad signature")
+            return False
         ret = _libsecp256k1.secp256k1_ecdsa_signature_normalize(_libsecp256k1.ctx, sig, sig)
 
         pubkey = self._to_libsecp256k1_pubkey_ptr()
         if 1 != _libsecp256k1.secp256k1_ecdsa_verify(_libsecp256k1.ctx, sig, msg_hash, pubkey):
-            raise Exception("Bad signature")
+            return False
+        return True
 
     def encrypt_message(self, message: bytes, magic: bytes = b'BIE1') -> bytes:
         """
@@ -340,18 +359,18 @@ class ECPubkey(object):
         return base64.b64encode(encrypted + mac)
 
     @classmethod
-    def order(cls):
+    def order(cls) -> int:
         return CURVE_ORDER
 
-    def is_at_infinity(self):
+    def is_at_infinity(self) -> bool:
         return self == POINT_AT_INFINITY
 
     @classmethod
-    def is_pubkey_bytes(cls, b: bytes):
+    def is_pubkey_bytes(cls, b: bytes) -> bool:
         try:
             ECPubkey(b)
             return True
-        except:
+        except Exception:
             return False
 
 
@@ -364,37 +383,33 @@ POINT_AT_INFINITY = ECPubkey(None)
 def msg_magic(message: bytes) -> bytes:
     from .bitcoin import var_int
     length = bfh(var_int(len(message)))
-    return b"\x16Zcoin Signed Message:\n" + length + message
+    return b"\x18Bitcoin Signed Message:\n" + length + message
 
 
 def verify_signature(pubkey: bytes, sig: bytes, h: bytes) -> bool:
-    try:
-        ECPubkey(pubkey).verify_message_hash(sig, h)
-    except:
-        return False
-    return True
+    return ECPubkey(pubkey).verify_message_hash(sig, h)
 
-def verify_message_with_address(address: str, sig65: bytes, message: bytes, *, net=None):
+
+def verify_message_with_address(address: str, sig65: bytes, message: bytes, *, net=None) -> bool:
     from .bitcoin import pubkey_to_address
     assert_bytes(sig65, message)
     if net is None: net = constants.net
+    h = sha256d(msg_magic(message))
     try:
-        h = sha256d(msg_magic(message))
-        public_key, compressed = ECPubkey.from_signature65(sig65, h)
-        # check public key using the address
-        pubkey_hex = public_key.get_public_key_hex(compressed)
-        for txin_type in ['p2pkh']:
-            addr = pubkey_to_address(txin_type, pubkey_hex, net=net)
-            if address == addr:
-                break
-        else:
-            raise Exception("Bad signature")
-        # check message
-        public_key.verify_message_hash(sig65[1:], h)
-        return True
+        public_key, compressed, txin_type_guess = ECPubkey.from_signature65(sig65, h)
     except Exception as e:
-        _logger.info(f"Verification error: {repr(e)}")
         return False
+    # check public key using the address
+    pubkey_hex = public_key.get_public_key_hex(compressed)
+    txin_types = (txin_type_guess,) if txin_type_guess else ('p2pkh', 'p2wpkh', 'p2wpkh-p2sh')
+    for txin_type in txin_types:
+        addr = pubkey_to_address(txin_type, pubkey_hex, net=net)
+        if address == addr:
+            break
+    else:
+        return False
+    # check message
+    return public_key.verify_message_hash(sig65[1:], h)
 
 
 def is_secret_within_curve_range(secret: Union[int, bytes]) -> bool:
@@ -418,12 +433,12 @@ class ECPrivkey(ECPubkey):
         super().__init__(pubkey.get_public_key_bytes(compressed=False))
 
     @classmethod
-    def from_secret_scalar(cls, secret_scalar: int):
+    def from_secret_scalar(cls, secret_scalar: int) -> 'ECPrivkey':
         secret_bytes = int.to_bytes(secret_scalar, length=32, byteorder='big', signed=False)
         return ECPrivkey(secret_bytes)
 
     @classmethod
-    def from_arbitrary_size_secret(cls, privkey_bytes: bytes):
+    def from_arbitrary_size_secret(cls, privkey_bytes: bytes) -> 'ECPrivkey':
         """This method is only for legacy reasons. Do not introduce new code that uses it.
         Unlike the default constructor, this method does not require len(privkey_bytes) == 32,
         and the secret does not need to be within the curve order either.
@@ -442,7 +457,7 @@ class ECPrivkey(ECPubkey):
         return f"<ECPrivkey {self.get_public_key_hex()}>"
 
     @classmethod
-    def generate_random_key(cls):
+    def generate_random_key(cls) -> 'ECPrivkey':
         randint = randrange(CURVE_ORDER)
         ephemeral_exponent = int.to_bytes(randint, length=32, byteorder='big', signed=False)
         return ECPrivkey(ephemeral_exponent)
@@ -472,14 +487,16 @@ class ECPrivkey(ECPubkey):
             return r, s
 
         r, s = sign_with_extra_entropy(extra_entropy=None)
-        counter = 0
-        while r >= 2**255:  # grind for low R value https://github.com/bitcoin/bitcoin/pull/13666
-            counter += 1
-            extra_entropy = counter.to_bytes(32, byteorder="little")
-            r, s = sign_with_extra_entropy(extra_entropy=extra_entropy)
+        if ENABLE_ECDSA_R_VALUE_GRINDING:
+            counter = 0
+            while r >= 2**255:  # grind for low R value https://github.com/bitcoin/bitcoin/pull/13666
+                counter += 1
+                extra_entropy = counter.to_bytes(32, byteorder="little")
+                r, s = sign_with_extra_entropy(extra_entropy=extra_entropy)
 
         sig_string = sig_string_from_r_and_s(r, s)
-        self.verify_message_hash(sig_string, msg_hash)
+        if not self.verify_message_hash(sig_string, msg_hash):
+            raise Exception("sanity check failed: signature we just created does not verify!")
 
         sig = sigencode(r, s)
         return sig
@@ -487,31 +504,18 @@ class ECPrivkey(ECPubkey):
     def sign_transaction(self, hashed_preimage: bytes) -> bytes:
         return self.sign(hashed_preimage, sigencode=der_sig_from_r_and_s)
 
-    def sign_digest(self, data: bytes, is_compressed: bool) -> bytes:
+    def sign_message(
+            self,
+            message: Union[bytes, str],
+            is_compressed: bool,
+            algo=lambda x: sha256d(msg_magic(x)),
+    ) -> bytes:
         def bruteforce_recid(sig_string):
             for recid in range(4):
                 sig65 = construct_sig65(sig_string, recid, is_compressed)
-                try:
-                    self.verify_digest_for_address(sig65, data)
-                    return sig65, recid
-                except Exception as e:
+                if not self.verify_message_for_address(sig65, message, algo):
                     continue
-            else:
-                raise Exception("error: cannot sign digest. no recid fits..")
-
-        sig_string = self.sign(data, sigencode=sig_string_from_r_and_s)
-        sig65, recid = bruteforce_recid(sig_string)
-        return sig65
-
-    def sign_message(self, message: bytes, is_compressed: bool, algo=lambda x: sha256d(msg_magic(x))) -> bytes:
-        def bruteforce_recid(sig_string):
-            for recid in range(4):
-                sig65 = construct_sig65(sig_string, recid, is_compressed)
-                try:
-                    self.verify_message_for_address(sig65, message, algo)
-                    return sig65, recid
-                except Exception as e:
-                    continue
+                return sig65, recid
             else:
                 raise Exception("error: cannot sign message. no recid fits..")
 

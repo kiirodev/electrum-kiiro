@@ -1,19 +1,19 @@
 from ipaddress import IPv6Address
 
-from electrum.dash_msg import (DashVersionMsg, DashDsaMsg, DashDssuMsg,
-                                    DashDsqMsg, DashDsiMsg, DashDsfMsg,
-                                    DashDssMsg, DashDscMsg)
-from electrum.dash_tx import TxOutPoint, CTxIn, CTxOut
+from electrum.kiiro_msg import (KiiroVersionMsg, KiiroDsaMsg, KiiroDssuMsg,
+                                    KiiroDsqMsg, KiiroDsiMsg, KiiroDsfMsg,
+                                    KiiroDssMsg, KiiroDscMsg)
+from electrum.kiiro_tx import TxOutPoint, CTxIn, CTxOut
 from electrum.transaction import Transaction
 from electrum.util import bfh, bh2u
 
 from . import TestCaseForTestnet
 
 
-class TestDashMsg(TestCaseForTestnet):
+class TestKiiroMsg(TestCaseForTestnet):
 
     def test_version_msg(self):
-        msg = DashVersionMsg.from_hex(VERSION_MSG)
+        msg = KiiroVersionMsg.from_hex(VERSION_MSG)
         assert msg.version == 70215
         assert msg.services == 5
         assert msg.timestamp == 1567673683
@@ -24,7 +24,7 @@ class TestDashMsg(TestCaseForTestnet):
         assert msg.trans_ip == IPv6Address('::')
         assert msg.trans_port == 0
         assert msg.nonce == 12615609395080869973
-        assert msg.user_agent == b'/Dash Core:0.14.0.3/'
+        assert msg.user_agent == b'/Kiiro Core:0.14.0.3/'
         assert msg.start_height == 169118
         assert msg.relay == 1
         assert msg.mnauth_challenge == bfh('9404092b784754ae2757c614d3e76ae1'
@@ -33,7 +33,7 @@ class TestDashMsg(TestCaseForTestnet):
         assert bh2u(msg.serialize()) == VERSION_MSG
 
     def test_dsa_msg(self):
-        msg = DashDsaMsg.from_hex(DSA_MSG)
+        msg = KiiroDsaMsg.from_hex(DSA_MSG)
         assert msg.nDenom == 2
         assert type(msg.txCollateral) == str
         tx = Transaction(msg.txCollateral)
@@ -41,7 +41,7 @@ class TestDashMsg(TestCaseForTestnet):
         assert bh2u(msg.serialize()) == DSA_MSG
 
     def test_dssu_msg(self):
-        msg = DashDssuMsg.from_hex(DSSU_MSG)
+        msg = KiiroDssuMsg.from_hex(DSSU_MSG)
         assert msg.sessionID == 67305985
         assert msg.state == 5
         assert msg.entriesCount == 3
@@ -50,7 +50,7 @@ class TestDashMsg(TestCaseForTestnet):
         assert bh2u(msg.serialize()) == DSSU_MSG
 
     def test_dsq_msg(self):
-        msg = DashDsqMsg.from_hex(DSQ_MSG)
+        msg = KiiroDsqMsg.from_hex(DSQ_MSG)
         assert msg.nDenom == 2
         assert type(msg.masternodeOutPoint) == TxOutPoint
         assert msg.nTime == 1567673683
@@ -59,7 +59,7 @@ class TestDashMsg(TestCaseForTestnet):
         assert bh2u(msg.serialize()) == DSQ_MSG
 
     def test_dsi_msg(self):
-        msg = DashDsiMsg.from_hex(DSI_MSG)
+        msg = KiiroDsiMsg.from_hex(DSI_MSG)
         assert len(msg.vecTxDSIn) == 2
         for txin in msg.vecTxDSIn:
             assert type(txin) == CTxIn
@@ -72,20 +72,20 @@ class TestDashMsg(TestCaseForTestnet):
         assert bh2u(msg.serialize()) == DSI_MSG
 
     def test_dsf_msg(self):
-        msg = DashDsfMsg.from_hex(DSF_MSG)
+        msg = KiiroDsfMsg.from_hex(DSF_MSG)
         assert msg.sessionID == 7
         assert type(msg.txFinal) == Transaction
         assert bh2u(msg.serialize()) == DSF_MSG
 
     def test_dss_msg(self):
-        msg = DashDssMsg.from_hex(DSS_MSG)
+        msg = KiiroDssMsg.from_hex(DSS_MSG)
         assert len(msg.inputs) == 2
         for txin in msg.inputs:
             assert type(txin) == CTxIn
         assert bh2u(msg.serialize()) == DSS_MSG
 
     def test_dsc_msg(self):
-        msg = DashDscMsg.from_hex(DSC_MSG)
+        msg = KiiroDscMsg.from_hex(DSC_MSG)
         assert msg.sessionID == 67305985
         assert msg.messageID == 21
         assert bh2u(msg.serialize()) == DSC_MSG

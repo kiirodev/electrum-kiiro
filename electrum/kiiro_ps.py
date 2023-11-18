@@ -9,18 +9,18 @@ from collections import deque
 from uuid import uuid4
 
 from . import util
-from .dash_msg import PRIVATESEND_ENTRY_MAX_SIZE, DSPoolState
-from .dash_ps_net import (PSMixSession, PRIVATESEND_SESSION_MSG_TIMEOUT,
+from .kiiro_msg import PRIVATESEND_ENTRY_MAX_SIZE, DSPoolState
+from .kiiro_ps_net import (PSMixSession, PRIVATESEND_SESSION_MSG_TIMEOUT,
                           MixSessionTimeout, MixSessionPeerClosed)
-from .dash_ps_wallet import (PSDataMixin, PSKeystoreMixin, KeyPairsMixin,
+from .kiiro_ps_wallet import (PSDataMixin, PSKeystoreMixin, KeyPairsMixin,
                              KPStates, NotFoundInKeypairs, AddPSDataError,
                              SignWithKeypairsFailed)
-from .dash_ps_util import (PSOptsMixin, PSUtilsMixin, PSGUILogHandler,
+from .kiiro_ps_util import (PSOptsMixin, PSUtilsMixin, PSGUILogHandler,
                            PSManLogAdapter, PSCoinRounds, PSStates,
                            PS_DENOMS_DICT, COLLATERAL_VAL, MIN_DENOM_VAL,
                            CREATE_COLLATERAL_VAL, CREATE_COLLATERAL_VALS,
                            PSTxWorkflow, PSDenominateWorkflow, calc_tx_fee)
-from .dash_tx import PSTxTypes, SPEC_TX_NAMES, CTxIn
+from .kiiro_tx import PSTxTypes, SPEC_TX_NAMES, CTxIn
 from .logging import Logger
 from .transaction import Transaction, PartialTxOutput, PartialTransaction
 from .util import (NoDynamicFeeEstimates, log_exceptions, SilentTaskGroup,
@@ -54,7 +54,7 @@ class PSManager(Logger, PSKeystoreMixin, PSDataMixin, PSOptsMixin,
                           ' This is not recommended if there is'
                           ' no particular need.')
     NO_NETWORK_MSG = _('Can not start mixing. Network is not available')
-    NO_DASH_NET_MSG = _('Can not start mixing. DashNet is not available')
+    NO_KIIRO_NET_MSG = _('Can not start mixing. KiiroNet is not available')
     LLMQ_DATA_NOT_READY = _('LLMQ quorums data is not fully loaded.')
     MNS_DATA_NOT_READY = _('Masternodes data is not fully loaded.')
     NOT_ENABLED_MSG = _('PrivateSend mixing is not enabled')
@@ -144,7 +144,7 @@ class PSManager(Logger, PSKeystoreMixin, PSDataMixin, PSOptsMixin,
             self.enable_ps_keystore()
 
         self.network = None
-        self.dash_net = None
+        self.kiiro_net = None
         self.loop = None
         self.main_taskgroup = None
 
@@ -231,7 +231,7 @@ class PSManager(Logger, PSKeystoreMixin, PSDataMixin, PSOptsMixin,
 
     @property
     def state(self):
-        '''Current state of PSManager (dash_ps_util.PSStates enum)'''
+        '''Current state of PSManager (kiiro_ps_util.PSStates enum)'''
         return self._state
 
     @property
@@ -260,7 +260,7 @@ class PSManager(Logger, PSKeystoreMixin, PSDataMixin, PSOptsMixin,
         self.network = network
         util.register_callback(self.on_wallet_updated, ['wallet_updated'])
         util.register_callback(self.on_network_status, ['status'])
-        self.dash_net = network.dash_net
+        self.kiiro_net = network.kiiro_net
         self.loop = network.asyncio_loop
         asyncio.ensure_future(self.clean_keypairs_on_timeout())
         asyncio.ensure_future(self.cleanup_staled_denominate_wfls())
@@ -309,8 +309,8 @@ class PSManager(Logger, PSKeystoreMixin, PSDataMixin, PSOptsMixin,
             msg = self.ALL_MIXED_MSG, 'inf'
         elif not self.network or not self.network.is_connected():
             msg = self.NO_NETWORK_MSG, 'err'
-        elif not self.dash_net.run_dash_net:
-            msg = self.NO_DASH_NET_MSG, 'err'
+        elif not self.kiiro_net.run_kiiro_net:
+            msg = self.NO_KIIRO_NET_MSG, 'err'
         if msg:
             msg, inf = msg
             self.logger.info(f'Can not start PrivateSend Mixing: {msg}')
@@ -1638,7 +1638,7 @@ class PSManager(Logger, PSKeystoreMixin, PSDataMixin, PSOptsMixin,
                 self.logger.debug('try to get masternode from recent dsq')
                 recent_mns = self.recent_mixes_mns
                 while self.state == PSStates.Mixing:
-                    dsq = self.dash_net.get_recent_dsq(recent_mns)
+                    dsq = self.kiiro_net.get_recent_dsq(recent_mns)
                     if dsq is not None:
                         self.logger.debug(f'get dsq from recent dsq queue'
                                           f' {dsq.masternodeOutPoint}')
@@ -1748,7 +1748,7 @@ class PSManager(Logger, PSKeystoreMixin, PSDataMixin, PSOptsMixin,
                 denom_amount = util.format_satoshis(session.denom_value)
                 self.logger.info(f'Denominate workflow {wfl.lid}:'
                                  f' timed out in pool state QUEUE,'
-                                 f' no peers to mix {denom_amount} DASH')
+                                 f' no peers to mix {denom_amount} KIIRO')
             elif type_e != asyncio.CancelledError:
                 if wfl:
                     self.logger.wfl_err(f'Error in denominate workflow:'

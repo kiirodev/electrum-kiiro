@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Dash-Electrum - lightweight Dash client
-# Copyright (C) 2019 Dash Developers
+# Kiiro-Electrum - lightweight Kiiro client
+# Copyright (C) 2019 Kiiro Developers
 #
 # Permission is hereby granted, free of charge, to any person
 # obtaining a copy of this software and associated documentation files
@@ -42,10 +42,10 @@ from typing import Optional, Dict
 from . import constants, util
 from .constants import CHUNK_SIZE
 from .blockchain import MissingHeader
-from .dash_peer import DashPeer
-from .dash_msg import SporkID, LLMQType
-from .dash_ps_net import PSDenoms, PRIVATESEND_QUEUE_TIMEOUT
-from .dash_tx import str_ip
+from .kiiro_peer import KiiroPeer
+from .kiiro_msg import SporkID, LLMQType
+from .kiiro_ps_net import PSDenoms, PRIVATESEND_QUEUE_TIMEOUT
+from .kiiro_tx import str_ip
 from .i18n import _
 from .logging import Logger
 from .simple_config import SimpleConfig
@@ -83,15 +83,15 @@ def is_valid_portnum(portnum):
     return 0 < int(portnum) < 65536
 
 
-class DashSporks:
-    '''Dash Sporks manager'''
+class KiiroSporks:
+    '''Kiiro Sporks manager'''
 
     LOGGING_SHORTCUT = 'D'
 
     SPORKS_DEFAULTS = {
         SporkID.SPORK_2_INSTANTSEND_ENABLED.value: 0,               # ON
         SporkID.SPORK_3_INSTANTSEND_BLOCK_FILTERING.value: 0,       # ON
-        SporkID.SPORK_5_INSTANTSEND_MAX_VALUE.value: 1000,          # 1000 Dash
+        SporkID.SPORK_5_INSTANTSEND_MAX_VALUE.value: 1000,          # 1000 Kiiro
         SporkID.SPORK_6_NEW_SIGS.value: Y2099,                      # OFF
         SporkID.SPORK_9_SUPERBLOCKS_ENABLED.value: Y2099,           # OFF
         SporkID.SPORK_12_RECONSIDER_BLOCKS.value: 0,                # 0 Blocks
@@ -162,9 +162,9 @@ class DashSporks:
         return res
 
 
-class DashNet(Logger):
-    '''The DashNet class manages a set of connections to remote peers
-    each connected peer is handled by an DashPeer() object.
+class KiiroNet(Logger):
+    '''The KiiroNet class manages a set of connections to remote peers
+    each connected peer is handled by an KiiroPeer() object.
     '''
 
     LOGGING_SHORTCUT = 'D'
@@ -195,7 +195,7 @@ class DashNet(Logger):
         self.config = network.config
 
         if config.path:
-            self.data_dir = os.path.join(config.path, 'dash_net')
+            self.data_dir = os.path.join(config.path, 'kiiro_net')
             make_dir(self.data_dir)
         else:
             self.data_dir = None
@@ -208,18 +208,18 @@ class DashNet(Logger):
         self.peers_lock = threading.Lock()  # for mutating/iterating self.peers
 
         # set of peers we have an ongoing connection with
-        self.peers = {}  # type: Dict[str, DashPeer]
+        self.peers = {}  # type: Dict[str, KiiroPeer]
         self.connecting = set()
         self.peers_queue = None
         self.banlist = self._read_banlist()
         self.found_peers = set()
 
-        self.is_cmd_dash_peers = not config.is_modifiable('dash_peers')
+        self.is_cmd_kiiro_peers = not config.is_modifiable('kiiro_peers')
         self.read_conf()
 
-        self._max_peers = self.config.get('dash_max_peers', MAX_PEERS_DEFAULT)
+        self._max_peers = self.config.get('kiiro_max_peers', MAX_PEERS_DEFAULT)
         # sporks manager
-        self.sporks = DashSporks()
+        self.sporks = KiiroSporks()
 
         # Recent islocks data
         self.recent_islock_invs = deque([], 200)
@@ -243,23 +243,23 @@ class DashNet(Logger):
 
     def read_conf(self):
         config = self.config
-        self.run_dash_net = config.get('run_dash_net', False)
-        self.dash_peers = self.config.get('dash_peers', [])
-        if self.is_cmd_dash_peers:
+        self.run_kiiro_net = config.get('run_kiiro_net', False)
+        self.kiiro_peers = self.config.get('kiiro_peers', [])
+        if self.is_cmd_kiiro_peers:
             self.use_static_peers = True
         else:
-            self.use_static_peers = config.get('dash_use_static_peers', False)
+            self.use_static_peers = config.get('kiiro_use_static_peers', False)
         self.static_peers = []
         if self.use_static_peers:
-            for p in self.dash_peers:
+            for p in self.kiiro_peers:
                 if ':' not in p:
                     p = f'{p}:{self.default_port}'
                 self.static_peers.append(p)
 
-    def dash_peers_as_str(self):
-        return ', '.join(self.dash_peers)
+    def kiiro_peers_as_str(self):
+        return ', '.join(self.kiiro_peers)
 
-    def dash_peers_from_str(self, peers_str):
+    def kiiro_peers_from_str(self, peers_str):
         peers = list(filter(lambda x: x, re.split(r';|,| |\n', peers_str)))
         for p in peers:
             if ':' in p:
@@ -272,7 +272,7 @@ class DashNet(Logger):
         return peers
 
     @staticmethod
-    def get_instance() -> Optional['DashNet']:
+    def get_instance() -> Optional['KiiroNet']:
         return INSTANCE
 
     def with_banlist_lock(func):
@@ -305,40 +305,40 @@ class DashNet(Logger):
             self.logger.info(f'failed to save banlist.gz: {repr(e)}')
 
     @with_banlist_lock
-    def _add_banned_peer(self, dash_peer):
-        peer = dash_peer.peer
+    def _add_banned_peer(self, kiiro_peer):
+        peer = kiiro_peer.peer
         self.banlist[peer] = {
             'at': time.time(),
-            'msg': dash_peer.ban_msg,
-            'till': dash_peer.ban_till,
-            'ua': dash_peer.version.user_agent.decode('utf-8'),
+            'msg': kiiro_peer.ban_msg,
+            'till': kiiro_peer.ban_till,
+            'ua': kiiro_peer.version.user_agent.decode('utf-8'),
         }
         self._save_banlist()
-        util.trigger_callback('dash-banlist-updated', 'added', peer)
+        util.trigger_callback('kiiro-banlist-updated', 'added', peer)
 
     @with_banlist_lock
     def _remove_banned_peer(self, peer):
         if peer in self.banlist:
             del self.banlist[peer]
             self._save_banlist()
-            util.trigger_callback('dash-banlist-updated', 'removed', peer)
+            util.trigger_callback('kiiro-banlist-updated', 'removed', peer)
 
     def status_icon(self):
-        if self.run_dash_net:
+        if self.run_kiiro_net:
             peers_cnt = len(self.peers)
             peers_percent = peers_cnt * 100 // MAX_PEERS_LIMIT
             if peers_percent == 0:
-                return 'dash_net_0.png'
+                return 'kiiro_net_0.png'
             elif peers_percent <= 25:
-                return 'dash_net_1.png'
+                return 'kiiro_net_1.png'
             elif peers_percent <= 50:
-                return 'dash_net_2.png'
+                return 'kiiro_net_2.png'
             elif peers_percent <= 75:
-                return 'dash_net_3.png'
+                return 'kiiro_net_3.png'
             else:
-                return 'dash_net_4.png'
+                return 'kiiro_net_4.png'
         else:
-            return 'dash_net_off.png'
+            return 'kiiro_net_off.png'
 
     def append_to_recent_islocks(self, islock):
         request_id = islock.calc_request_id()
@@ -355,7 +355,7 @@ class DashNet(Logger):
                                         quorum,
                                         request_id))
         self.clear_recent_islocks()
-        util.trigger_callback('dash-islock', txid)
+        util.trigger_callback('kiiro-islock', txid)
 
     def verify_on_recent_islocks(self, txid):
         found = list(filter(lambda x: x[0] == txid, self.recent_islocks))
@@ -419,24 +419,24 @@ class DashNet(Logger):
     @log_exceptions
     async def set_parameters(self):
         proxy = self.network.proxy
-        run_dash_net = self.config.get('run_dash_net', False)
-        if not self.is_cmd_dash_peers:
-            dash_peers = self.config.get('dash_peers', [])
-            use_static_peers = self.config.get('dash_use_static_peers', False)
+        run_kiiro_net = self.config.get('run_kiiro_net', False)
+        if not self.is_cmd_kiiro_peers:
+            kiiro_peers = self.config.get('kiiro_peers', [])
+            use_static_peers = self.config.get('kiiro_use_static_peers', False)
         else:
-            dash_peers = self.dash_peers
+            kiiro_peers = self.kiiro_peers
             use_static_peers = self.use_static_peers
         async with self.restart_lock:
             if (self.proxy != proxy
-                    or self.run_dash_net != run_dash_net
+                    or self.run_kiiro_net != run_kiiro_net
                     or self.use_static_peers != use_static_peers
-                    or self.dash_peers != dash_peers):
+                    or self.kiiro_peers != kiiro_peers):
                 await self.stop()
                 await self._start()
 
     async def _start(self):
         self.read_conf()
-        if not self.run_dash_net:
+        if not self.run_kiiro_net:
             return
 
         assert not self.main_taskgroup
@@ -445,7 +445,7 @@ class DashNet(Logger):
         assert not self.connecting and not self.peers_queue
         self.peers_queue = queue.Queue()
         self.proxy = self.network.proxy
-        self.logger.info('starting Dash network')
+        self.logger.info('starting Kiiro network')
         self.disconnected_static = {}
 
         async def main():
@@ -458,7 +458,7 @@ class DashNet(Logger):
                 self.logger.exception('')
                 raise e
         asyncio.run_coroutine_threadsafe(main(), self.loop)
-        util.trigger_callback('dash-net-updated', 'enabled')
+        util.trigger_callback('kiiro-net-updated', 'enabled')
 
     def start(self):
         asyncio.run_coroutine_threadsafe(self._start(), self.loop)
@@ -468,7 +468,7 @@ class DashNet(Logger):
         if not self.main_taskgroup:
             return
 
-        self.logger.info('stopping Dash network')
+        self.logger.info('stopping Kiiro network')
         try:
             await asyncio.wait_for(self.main_taskgroup.cancel_remaining(),
                                    timeout=2)
@@ -476,11 +476,11 @@ class DashNet(Logger):
             self.logger.info(f'exc during main_taskgroup cancellation: '
                              f'{repr(e)}')
         self.main_taskgroup = None  # type: TaskGroup
-        self.peeers = {}  # type: Dict[str, DashPeer]
+        self.peeers = {}  # type: Dict[str, KiiroPeer]
         self.connecting.clear()
         self.peers_queue = None
         if not full_shutdown:
-            util.trigger_callback('dash-net-updated', 'disabled')
+            util.trigger_callback('kiiro-net-updated', 'disabled')
 
     def run_from_another_thread(self, coro):
         assert util.get_running_loop() != self.asyncio_loop, NET_THREAD_MSG
@@ -500,7 +500,7 @@ class DashNet(Logger):
         cnt = MIN_PEERS_LIMIT if cnt < MIN_PEERS_LIMIT else cnt
         cnt = MAX_PEERS_LIMIT if cnt > MAX_PEERS_LIMIT else cnt
         self._max_peers = cnt
-        self.config.set_key('dash_max_peers', cnt, True)
+        self.config.set_key('kiiro_max_peers', cnt, True)
 
     async def find_peers(self):
         peers_set = set(self.peers.keys())
@@ -586,7 +586,7 @@ class DashNet(Logger):
             if read_time < new_read_time or write_time < new_write_time:
                 read_time = new_read_time
                 write_time = new_write_time
-                util.trigger_callback('dash-net-activity')
+                util.trigger_callback('kiiro-net-activity')
             if set_spork_time < new_set_spork_time:
                 set_spork_time = new_set_spork_time
                 util.trigger_callback('sporks-activity')
@@ -621,59 +621,59 @@ class DashNet(Logger):
             self.connecting.add(peer)
             self.peers_queue.put(peer)
 
-    def _close_peer(self, peer, dash_peer):
+    def _close_peer(self, peer, kiiro_peer):
         with self.peers_lock:
-            if self.peers.get(peer) == dash_peer:
+            if self.peers.get(peer) == kiiro_peer:
                 self.peers.pop(peer)
-                util.trigger_callback('dash-peers-updated', 'removed', peer)
-        dash_peer.close()
+                util.trigger_callback('kiiro-peers-updated', 'removed', peer)
+        kiiro_peer.close()
 
-    async def connection_down(self, dash_peer):
-        peer = dash_peer.peer
-        self._close_peer(peer, dash_peer)
+    async def connection_down(self, kiiro_peer):
+        peer = kiiro_peer.peer
+        self._close_peer(peer, kiiro_peer)
         if self.use_static_peers and peer in self.static_peers:
             self.disconnected_static[peer] = time.time()
-        elif dash_peer.ban_msg:
-            self._add_banned_peer(dash_peer)
+        elif kiiro_peer.ban_msg:
+            self._add_banned_peer(kiiro_peer)
 
     @ignore_exceptions  # do not kill main_taskgroup
     @log_exceptions
     async def _run_new_peer(self, peer):
-        dash_peer = DashPeer(self, peer, self.proxy)
+        kiiro_peer = KiiroPeer(self, peer, self.proxy)
         # note: using longer timeouts here as DNS can sometimes be slow!
         timeout = self.network.get_network_timeout_seconds()
         try:
-            await asyncio.wait_for(dash_peer.ready, timeout)
+            await asyncio.wait_for(kiiro_peer.ready, timeout)
         except (asyncio.TimeoutError, asyncio.CancelledError):
             self.logger.info(f'could not connect peer {peer}')
-            dash_peer.close()
+            kiiro_peer.close()
             return
         else:
             with self.peers_lock:
                 assert peer not in self.peers
-                self.peers[peer] = dash_peer
+                self.peers[peer] = kiiro_peer
         finally:
             try:
                 self.connecting.remove(peer)
             except KeyError:
                 pass
 
-        util.trigger_callback('dash-peers-updated', 'added', peer)
+        util.trigger_callback('kiiro-peers-updated', 'added', peer)
 
     @ignore_exceptions
     @log_exceptions
     async def run_mixing_peer(self, peer, sml_entry, mix_session):
-        dash_peer = DashPeer(self, peer, self.proxy, debug=False,
+        kiiro_peer = KiiroPeer(self, peer, self.proxy, debug=False,
                              sml_entry=sml_entry, mix_session=mix_session)
         # note: using longer timeouts here as DNS can sometimes be slow!
         timeout = self.network.get_network_timeout_seconds()
         try:
-            await asyncio.wait_for(dash_peer.ready, timeout)
+            await asyncio.wait_for(kiiro_peer.ready, timeout)
         except (asyncio.TimeoutError, asyncio.CancelledError):
             self.logger.info(f'could not connect peer {peer}')
-            dash_peer.close()
+            kiiro_peer.close()
             return
-        return dash_peer
+        return kiiro_peer
 
     async def getmnlistd(self, get_mns=False):
         mn_list = self.network.mn_list

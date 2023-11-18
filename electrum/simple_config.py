@@ -125,7 +125,7 @@ class SimpleConfig(Logger):
                 path = os.path.join(path, 'regtest')
                 make_dir(path, allow_symlink=False)
 
-        self.logger.info(f"electrum-dash directory {path}")
+        self.logger.info(f"electrum-kiiro directory {path}")
         return path
 
     def rename_config_keys(self, config, keypairs, deprecation_warning=False):
@@ -665,7 +665,7 @@ class SimpleConfig(Logger):
 
 
 def read_user_config(path):
-    """Parse and store the user config settings in electrum-dash.conf into user_config[]."""
+    """Parse and store the user config settings in electrum-kiiro.conf into user_config[]."""
     if not path:
         return {}
     config_path = os.path.join(path, "config")

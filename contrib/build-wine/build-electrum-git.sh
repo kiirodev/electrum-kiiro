@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME_ROOT=electrum
+NAME_ROOT=electrum-kiiro
 
 export PYTHONDONTWRITEBYTECODE=1  # don't create __pycache__/ folders with .pyc files
 
@@ -12,7 +12,7 @@ set -e
 
 pushd $WINEPREFIX/drive_c/electrum-kiiro
 
-VERSION=$(git describe --tags --dirty --always)
+VERSION=$(git describe --tags --always)
 info "Last commit: $VERSION"
 
 # Load electrum-locale for this release

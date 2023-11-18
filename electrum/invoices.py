@@ -4,7 +4,7 @@ from decimal import Decimal
 
 import attr
 
-from .dash_tx import STANDARD_TX
+from .kiiro_tx import STANDARD_TX
 from .json_db import StoredObject
 from .i18n import _
 from .util import age, InvoiceError

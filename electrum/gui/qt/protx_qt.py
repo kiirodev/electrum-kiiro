@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (QTabBar, QTabWidget, QWidget, QLabel, QPushButton,
                              QTextEdit, QMenu, QComboBox)
 
 from electrum import util
-from electrum.dash_tx import (SPEC_PRO_REG_TX, SPEC_PRO_UP_REV_TX,
+from electrum.kiiro_tx import (SPEC_PRO_REG_TX, SPEC_PRO_UP_REV_TX,
                                    RevokeReasons, revoke_reason_str)
 from electrum.protx import (ProRegTxExc, ProTxManagerExc, ProTxMN,
                                  ProTxService)
@@ -1112,7 +1112,7 @@ class Dip3MNInfoDialog(QDialog):
         '''
         super(Dip3MNInfoDialog, self).__init__(parent)
         self.setMinimumSize(950, 450)
-        self.setWindowIcon(read_QIcon('electrum-dash.png'))
+        self.setWindowIcon(read_QIcon('electrum-kiiro.png'))
 
         self.parent = parent
         self.gui = parent.gui
@@ -1239,7 +1239,7 @@ class RevokeOperatiorDialog(QDialog):
     def __init__(self, parent, mn):
         super(RevokeOperatiorDialog, self).__init__(parent)
         self.setWindowTitle(_('Revoke operator'))
-        self.setWindowIcon(read_QIcon('electrum-dash.png'))
+        self.setWindowIcon(read_QIcon('electrum-kiiro.png'))
         self.setMinimumWidth(400)
         vbox = QVBoxLayout()
         vbox.addWidget(QLabel(_('Revoke operator for: {}').format(mn.alias)))

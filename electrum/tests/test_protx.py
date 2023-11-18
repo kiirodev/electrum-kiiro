@@ -1,6 +1,6 @@
 import unittest
 
-from electrum.dash_tx import TxOutPoint
+from electrum.kiiro_tx import TxOutPoint
 from electrum.protx import ProTxMN
 
 

@@ -24,7 +24,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          sudo apt-get install -y libsecp256k1-0
+          sudo apt-get install -y libsecp256k1-2
           python -m pip install --upgrade pip wheel tox tox-gh-actions flake8
       - name: Run flake8
         run: |

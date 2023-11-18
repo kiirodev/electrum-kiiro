@@ -63,7 +63,7 @@ from .bitcoin import COIN, TYPE_ADDRESS
 from .bitcoin import is_address, address_to_script, is_minikey, relayfee, dust_threshold
 from .crypto import sha256d
 from . import keystore
-from .dash_tx import SPEC_TX_NAMES
+from .kiiro_tx import SPEC_TX_NAMES
 from .keystore import (load_keystore, Hardware_KeyStore, KeyStore, KeyStoreWithMPK,
                        AddressIndexGeneric, CannotDerivePubkey)
 from .util import multisig_type

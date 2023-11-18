@@ -50,8 +50,8 @@ from .bitcoin import (TYPE_ADDRESS, TYPE_SCRIPT, hash_160,
                       opcodes, add_number_to_script, base_decode, base_encode,
                       construct_script)
 from .crypto import sha256d
-from .dash_tx import (ProTxBase, read_extra_payload, serialize_extra_payload,
-                      to_varbytes, DashTxError)
+from .kiiro_tx import (ProTxBase, read_extra_payload, serialize_extra_payload,
+                      to_varbytes, KiiroTxError)
 from .logging import get_logger
 
 if TYPE_CHECKING:
@@ -943,7 +943,7 @@ def tx_from_any(raw: Union[str, bytes], *,
         if deserialize:
             tx.deserialize()
         return tx
-    except DashTxError:
+    except KiiroTxError:
         raise
     except Exception as e:
         raise SerializationError(f"Failed to recognise tx encoding, or to parse transaction. "
