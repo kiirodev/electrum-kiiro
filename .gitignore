@@ -43,6 +43,7 @@ contrib/secp256k1/
 contrib/zbar/
 contrib/libusb/
 contrib/libx11hash/
+contrib/x11_hash/
 contrib/.venv_make_packages/
 
 # shared objects

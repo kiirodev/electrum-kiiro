@@ -11,9 +11,12 @@ set -e
 . "$CONTRIB"/build_tools_util.sh
 
 pushd $WINEPREFIX/drive_c/electrum-kiiro
+source $CONTRIB/electrum_kiiro_version_env.sh
 
-VERSION=$(git describe --tags --always)
-info "Last commit: $VERSION"
+echo "CONTRIB_WINE: $CONTRIB_WINE"
+echo "CONTRIB: $CONTRIB"
+VERSION=$KIIRO_ELECTRUM_VERSION
+info "electrum-kiiro version is: $VERSION"
 
 # Load electrum-locale for this release
 git submodule update --init
@@ -58,6 +61,16 @@ rm -rf dist/
 # build standalone and portable versions
 info "Running pyinstaller..."
 ELECTRUM_CMDLINE_NAME="$NAME_ROOT-$VERSION" wine "$WINE_PYHOME/scripts/pyinstaller.exe" --noconfirm --ascii --clean deterministic.spec
+
+TOR_PROXY_VERSION=0.4.5.7
+TOR_PROXY_PATH=https://github.com/Bertrand256/tor-proxy/releases/download
+TOR_DIST="dist/tor-proxy-setup.exe"
+
+TOR_FILE="$TOR_PROXY_VERSION/tor-proxy-$TOR_PROXY_VERSION-win32-setup.exe"
+wget -O "$TOR_DIST" "$TOR_PROXY_PATH/$TOR_FILE"
+TOR_SHA="233ee2c8f4cbab6ffff74479156d91929564e7af8f9ff614e793f59fb51ac0f3"
+echo "$TOR_SHA  $TOR_DIST" > sha256.txt
+shasum -a256 -s -c sha256.txt
 
 # set timestamps in dist, in order to make the installer reproducible
 pushd dist

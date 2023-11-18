@@ -24,8 +24,8 @@ from .logging import Logger
 
 
 DEFAULT_ENABLED = False
-DEFAULT_CURRENCY = "USDT"
-DEFAULT_EXCHANGE = "Xeggex"
+DEFAULT_CURRENCY = "USD"
+DEFAULT_EXCHANGE = "CoinPaprika"
 
 
 # See https://en.wikipedia.org/wiki/ISO_4217

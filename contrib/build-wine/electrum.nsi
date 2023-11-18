@@ -155,6 +155,13 @@ Section "${PRODUCT_NAME}" SectionDE
   WriteRegDWORD HKCU "${PRODUCT_UNINST_KEY}" "EstimatedSize" "$0"
 SectionEnd
 
+Section "Tor Proxy" SectionTor
+  GetTempFileName $0
+  File /oname=$0 "dist\tor-proxy-setup.exe"
+  ExecWait "$0"
+  Delete "$0"
+SectionEnd
+
 ;--------------------------------
 ;Descriptions
 LangString DESC_DE ${LANG_ENGLISH} "Kiiro Electrum Wallet"
@@ -162,6 +169,7 @@ LangString DESC_TOR ${LANG_ENGLISH} "The Tor Project Socks Proxy"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 !insertmacro MUI_DESCRIPTION_TEXT ${SectionDE} $(DESC_DE)
+!insertmacro MUI_DESCRIPTION_TEXT ${SectionTor} $(DESC_TOR)
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ;--------------------------------

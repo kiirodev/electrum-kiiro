@@ -17,7 +17,6 @@ BUILD_UID=$(/usr/bin/stat -c %u "$PROJECT_ROOT")
 info "Clearing $CONTRIB_WINE/dist..."
 rm -rf "$CONTRIB_WINE"/dist/*
 
-
 DOCKER_BUILD_FLAGS=""
 if [ ! -z "$ELECBUILD_NOCACHE" ] ; then
     info "ELECBUILD_NOCACHE is set. forcing rebuild of docker image."

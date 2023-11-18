@@ -33,11 +33,6 @@ export WINEDEBUG=-all
 export WINE_PYHOME="c:/python3"
 export WINE_PYTHON="wine $WINE_PYHOME/python.exe -B"
 
-export TOR_PROXY_VERSION=0.4.5.7
-export TOR_PROXY_PATH=https://github.com/Bertrand256/tor-proxy/releases/download
-export TOR_DIST="$here/dist/tor-proxy-setup.exe"
-
-
 . "$CONTRIB"/build_tools_util.sh
 
 git -C "$PROJECT_ROOT" rev-parse 2>/dev/null || fail "Building outside a git clone is not supported."
@@ -45,12 +40,6 @@ git -C "$PROJECT_ROOT" rev-parse 2>/dev/null || fail "Building outside a git clo
 info "Clearing $here/build and $here/dist..."
 rm "$here"/build/* -rf
 rm "$here"/dist/* -rf
-
-TOR_FILE=${TOR_PROXY_VERSION}/tor-proxy-${TOR_PROXY_VERSION}-win32-setup.exe
-wget -O ${TOR_DIST} ${TOR_PROXY_PATH}/${TOR_FILE}
-TOR_SHA=233ee2c8f4cbab6ffff74479156d91929564e7af8f9ff614e793f59fb51ac0f3
-echo "$TOR_SHA  $TOR_DIST" > sha256.txt
-shasum -a256 -s -c sha256.txt
 
 mkdir -p "$CACHEDIR" "$DLL_TARGET_DIR" "$PIP_CACHE_DIR"
 

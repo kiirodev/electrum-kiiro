@@ -23,7 +23,9 @@ PYTHON_VERSION=3.10.11
 PY_VER_MAJOR="3.10"  # as it appears in fs paths
 PKG2APPIMAGE_COMMIT="a9c85b7e61a3a883f4a35c41c5decb5af88b6b5d"
 
-VERSION=$(git describe --tags --always)
+source $CONTRIB/electrum_kiiro_version_env.sh
+VERSION=$KIIRO_ELECTRUM_VERSION
+info "electrum-kiiro version is: $VERSION"
 APPIMAGE="$DISTDIR/electrum-$VERSION-x86_64.AppImage"
 
 rm -rf "$BUILDDIR"

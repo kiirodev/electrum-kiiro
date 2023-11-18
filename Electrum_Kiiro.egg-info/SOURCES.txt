@@ -13,7 +13,6 @@ SECURITY.md
 electrum-env
 electrum-kiiro.desktop
 electrum-kiiro.spec
-nsis-3.05-setup.exe
 org.electrum.electrum.metainfo.xml
 run_electrum
 setup.cfg
@@ -32,6 +31,7 @@ contrib/add_cosigner
 contrib/build_locale.sh
 contrib/build_tools_util.sh
 contrib/docker_notes.md
+contrib/electrum_kiiro_version_env.sh
 contrib/freeze_containers_distro.sh
 contrib/freeze_packages.sh
 contrib/generate_payreqpb2.sh
@@ -122,6 +122,7 @@ contrib/build-wine/electrum-dash.nsi
 contrib/build-wine/electrum.nsi
 contrib/build-wine/make_win.sh
 contrib/build-wine/prepare-wine.sh
+contrib/build-wine/sha256.txt
 contrib/build-wine/sign.sh
 contrib/build-wine/unsign.sh
 contrib/build-wine/gpg_keys/7ED10B6531D7C8E1BC296021FC624643487034E5.asc
@@ -2092,6 +2093,7 @@ pubkeys/Animazing.asc
 pubkeys/Emzy.asc
 pubkeys/ThomasV.asc
 pubkeys/bauerj.asc
+pubkeys/kiirodev.asc
 pubkeys/kyuupichan.asc
 pubkeys/sombernight.asc
 pubkeys/sombernight_releasekey.asc
