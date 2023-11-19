@@ -5,8 +5,8 @@ set -e
 # Parameterize
 PYTHON_VERSION=3.10.11
 PY_VER_MAJOR="3.10"  # as it appears in fs paths
-PACKAGE=Electrum
-GIT_REPO=https://github.com/spesmilo/electrum
+PACKAGE=Electrum-KIIRO
+GIT_REPO="https://github.com/Kiirocoin/kiiro"
 
 export GCC_STRIP_BINARIES="1"
 export PYTHONDONTWRITEBYTECODE=1  # don't create __pycache__/ folders with .pyc files
@@ -116,6 +116,12 @@ python3 -m pip install --no-build-isolation --no-dependencies --no-warn-script-l
 python3 -m pip install --no-build-isolation --no-dependencies --no-binary :all: --no-warn-script-location \
     -Ir ./contrib/deterministic-build/requirements-build-mac.txt \
     || fail "Could not install build dependencies (mac)"
+
+info "Installing build python_bls."
+PYTHONBLS="python_bls-0.1.10-cp310-cp310-macosx_10_9_universal2.whl"
+download_if_not_exist "$CACHEDIR/$PYTHONBLS" "https://github.com/zebra-lucky/python-bls/releases/download/0.1.10/$PYTHONBLS"
+verify_hash "$CACHEDIR/$PYTHONBLS" "efca59ca65f7d325bb26ed915a6bda8d3c8e4309c4ef1208e041791498cd3306"
+python3 -m pip install --cache-dir "$PIP_CACHE_DIR" "$CACHEDIR/$PYTHONBLS"
 
 info "Installing some build-time deps for compilation..."
 brew install autoconf automake libtool gettext coreutils pkgconfig
@@ -232,7 +238,9 @@ find "$VENV_DIR/lib/python$PY_VER_MAJOR/site-packages/" -type f -name '*.so' -pr
 info "Faking timestamps..."
 find . -exec touch -t '200101220000' {} + || true
 
-VERSION=$(git describe --tags --always)
+source $CONTRIB/electrum_kiiro_version_env.sh
+VERSION=$KIIRO_ELECTRUM_VERSION
+info "electrum-kiiro version is: $VERSION"
 
 info "Building binary"
 ELECTRUM_VERSION=$VERSION pyinstaller --noconfirm --ascii --clean contrib/osx/osx.spec || fail "Could not build binary"

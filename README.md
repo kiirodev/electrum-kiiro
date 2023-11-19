@@ -1,20 +1,10 @@
 Kiiro Electrum - Lightweight Kiiro client
 =====================================
 
-::
-
   Licence: MIT Licence
   Author: Thomas Voegtlin
   Language: Python (>= 3.6)
   Homepage: https://electrum.dash.org/
-
-
-.. image:: https://travis-ci.org/akhavr/electrum-dash.svg?branch=master
-    :target: https://travis-ci.org/akhavr/electrum-dash
-    :alt: Build Status
-
-
-
 
 
 Getting started

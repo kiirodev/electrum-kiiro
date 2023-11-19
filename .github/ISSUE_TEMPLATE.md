@@ -10,7 +10,7 @@
 ### Crash / debug logs
 <!-- Please run it with -vdebug with a terminal and paste the important exerpts from the output here.
   Linux: cd to the install dir, run `python3 electrum-kiiro -vdebug`
-  MacOS: Mount the image, cd to the mounted volume, find the app (find . -name "Electrum-XZC"), execute PATH/Electrum-XZC -vdebug. For example `cd /Volumes/Electrum-XZC; Electrum-XZC.app/Contents/Macos/Electrum-XZC -vdebug`
+  MacOS: Mount the image, cd to the mounted volume, find the app (find . -name "Electrum-KIIRO"), execute PATH/Electrum-KIIRO -vdebug. For example `cd /Volumes/Electrum-KIIRO; Electrum-KIIRO.app/Contents/Macos/Electrum-KIIRO -vdebug`
 -->
 
 ### Desired behavior 

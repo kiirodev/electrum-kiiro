@@ -11,10 +11,10 @@ README.md
 RELEASE-NOTES
 SECURITY.md
 electrum-env
+electrum-kiiro
 electrum-kiiro.desktop
 electrum-kiiro.spec
 org.electrum.electrum.metainfo.xml
-electrum-kiiro
 setup.cfg
 setup.py
 tox.ini
@@ -282,7 +282,6 @@ electrum/dns_hacks.py
 electrum/dnssec.py
 electrum/ecc.py
 electrum/ecc_fast.py
-electrum/electrum-kiiro
 electrum/exchange_rate.py
 electrum/i18n.py
 electrum/interface.py
