@@ -240,8 +240,8 @@ TOR_WARN_MSG = _('Warning: Tor proxy is not detected, to enable'
                  ' it read the docs:')
 TOR_DOCS_TITLE = _('Tor Setup Docs')
 TOR_DOCS_URI = ('https://electrum.readthedocs.io/en/latest/tor.html')
-TOR_DOCS_URI_QT = f'<br><a href="{TOR_DOCS_URI}">{TOR_DOCS_TITLE}</a>'
-TOR_DOCS_URI_KIVY = (f'\n\n[color=#00f][ref={TOR_DOCS_URI}]'
+TOR_DOCS_URI_QT = f'<br><a href="{TOR_DOCS_URI}" style="color:#FCB040;">{TOR_DOCS_TITLE}</a>'
+TOR_DOCS_URI_KIVY = (f'\n\n[color=#FCB040][ref={TOR_DOCS_URI}]'
                      f'{TOR_DOCS_TITLE}[/ref][/color]')
 
 
