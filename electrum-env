@@ -35,4 +35,4 @@ export PYTHONPATH="$PYTHONPATH:"\
 "/usr/lib/python${PYTHON_VER}/site-packages:"
 
 
-./run_electrum "$@"
+./electrum-kiiro "$@"

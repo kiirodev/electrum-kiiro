@@ -14,7 +14,7 @@ electrum-env
 electrum-kiiro.desktop
 electrum-kiiro.spec
 org.electrum.electrum.metainfo.xml
-run_electrum
+electrum-kiiro
 setup.cfg
 setup.py
 tox.ini

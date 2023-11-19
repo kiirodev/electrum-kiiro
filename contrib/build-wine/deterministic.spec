@@ -49,7 +49,7 @@ datas += collect_data_files('ckcc')
 datas += collect_data_files('bitbox02')
 
 # We don't put these files in to actually include them in the script but to make the Analysis method scan them for imports
-a = Analysis([home+'run_electrum',
+a = Analysis([home+'electrum-kiiro',
               home+'electrum/gui/qt/main_window.py',
               home+'electrum/gui/qt/qrreader/qtmultimedia/camera_dialog.py',
               home+'electrum/gui/text.py',

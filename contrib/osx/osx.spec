@@ -6,7 +6,7 @@ import sys, os
 
 PACKAGE='Kiiro Electrum'
 PYPKG='electrum-kiiro'
-MAIN_SCRIPT='run_electrum'
+MAIN_SCRIPT='electrum-kiiro'
 ICONS_FILE=PYPKG + '/gui/icons/electrum-kiiro.icns'
 
 
@@ -51,7 +51,6 @@ datas += collect_data_files('bitbox02')
 binaries = [(electrum + "electrum/libusb-1.0.dylib", ".")]
 binaries += [(electrum + "electrum/libsecp256k1.2.dylib", ".")]
 binaries += [(electrum + "electrum/libzbar.0.dylib", ".")]
-binaries += [(electrum + "electrum/libx11hash.0.dylib", ".")]
 
 # Workaround for "Retro Look":
 binaries += [b for b in collect_dynamic_libs('PyQt5') if 'macstyle' in b[0]]

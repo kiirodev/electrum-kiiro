@@ -248,9 +248,9 @@ root_logger.setLevel(logging.WARNING)
 # used until the proper log handlers are fully configured, including their verbosity,
 # at which point we will dump its contents into those, and remove this log handler.
 # Note: this is set up at import-time instead of e.g. as part of a function that is
-#       called from run_electrum (the main script). This is to have this run as early
+#       called from electrum-kiiro (the main script). This is to have this run as early
 #       as possible.
-# Note: some users might use Electrum as a python library and not use run_electrum,
+# Note: some users might use Electrum as a python library and not use electrum-kiiro,
 #       in which case these logs might never get redirected or cleaned up.
 #       Also, the python docs recommend libraries not to set a handler, to
 #       avoid interfering with the user's logging.

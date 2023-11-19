@@ -44,5 +44,5 @@ $ source ~/.zshrc
 
 ### 4. Run electrum:
 ```
-$ ./run_electrum
+$ ./electrum-kiiro
 ```

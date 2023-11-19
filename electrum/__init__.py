@@ -1,7 +1,7 @@
 import sys
 import os
 
-# these are ~duplicated from run_electrum:
+# these are ~duplicated from electrum-kiiro:
 is_bundle = getattr(sys, 'frozen', False)
 is_local = not is_bundle and os.path.exists(os.path.join(os.path.dirname(os.path.dirname(__file__)), "electrum-kiiro.desktop"))
 
