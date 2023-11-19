@@ -4,7 +4,7 @@
 [Desktop Entry]
 Comment=KiirocoinElectrum Wallet
 Exec=sh -c "PATH=\"\\$HOME/.local/electrum-kiiro:\\$PATH\"; electrum-kiiro %u"
-GenericName[en_US]=Kiiro Electrum
+GenericName[en_US]=Electrum Kiiro
 GenericName=Kiirocoin Electrum
 Icon=electrum-kiiro
 Name[en_US]=Kiirocoin Electrum

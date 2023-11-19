@@ -5,7 +5,7 @@ set -e
 # Parameterize
 PYTHON_VERSION=3.10.11
 PY_VER_MAJOR="3.10"  # as it appears in fs paths
-PACKAGE=Electrum-KIIRO
+PACKAGE="Electrum Kiiro"
 GIT_REPO="https://github.com/Kiirocoin/kiiro"
 
 export GCC_STRIP_BINARIES="1"
@@ -257,7 +257,7 @@ if [ ! -z "$CODESIGN_CERT" ]; then
 fi
 
 info "Creating .DMG"
-hdiutil create -fs HFS+ -volname $PACKAGE -srcfolder dist/$PACKAGE.app dist/electrum-$VERSION.dmg || fail "Could not create .DMG"
+hdiutil create -fs HFS+ -volname '$PACKAGE' -srcfolder 'dist/$PACKAGE.app' dist/electrum-kiiro-$VERSION.dmg || fail "Could not create .DMG"
 
 DoCodeSignMaybe ".DMG" "dist/electrum-${VERSION}.dmg"
 

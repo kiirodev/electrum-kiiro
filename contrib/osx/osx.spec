@@ -4,7 +4,7 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules, coll
 
 import sys, os
 
-PACKAGE='Kiiro Electrum'
+PACKAGE='Electrum Kiiro'
 PYPKG='electrum'
 MAIN_SCRIPT='electrum-kiiro'
 ICONS_FILE=PYPKG + '/gui/icons/electrum-kiiro.icns'
